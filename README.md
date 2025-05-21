@@ -31,25 +31,69 @@ A Python utility for evaluating job fit based on skill matrices. This tool helps
 
 3. **Basic Usage**
    ```bash
-   python job-skill-matrix-scoring.py your_skills.csv
+   python scoring/cli.py data/matrix.csv
    ```
+   For v2-specific scoring:
+   ```bash
+   python scoring/scoring_v2.py data/matrix.csv
+   ```
+
+## Project Structure
+
+```
+job_scorer/
+├── scoring/                  # Source code (main modules)
+├── data/                     # Example/reference CSVs
+├── tests/                    # Test scripts and test data
+├── docs/                     # Additional documentation
+├── README.md
+├── CHANGELOG.md
+└── requirements.txt
+```
+
+- Place your own skills/job matrix CSVs in the `data/` directory or specify the path as needed.
+- All scoring scripts are now organized under the `scoring/` package for clarity.
+- Test data and test runner scripts are in `tests/`.
 
 ## CSV Formats
 
 ### Version 2 (Recommended)
 ```csv
-Requirement,Classification,SelfScore,Emphasis,Notes
-Python programming,Essential,4,Critical,Core language
-Data analysis,Important,2,Standard,Basic experience
-Project management,Desirable,1,Minimal,No formal experience
+Requirement,Classification,SelfScore,Notes
+Expert in Python,Essential,5,Used in production projects
+Familiarity with SQL,Important,3,Some coursework
+Documentation,Desirable,4,Contributed to team docs
 ```
 
-**Columns**:
-- `Requirement`: The skill or requirement
-- `Classification`: `Essential`/`Important`/`Desirable`/`Implicit`
-- `SelfScore`: Your self-assessment (0-5)
-- `Emphasis`: `Critical`/`Standard`/`Minimal` (affects scoring weight)
-- `Notes`: Optional comments
+**Required columns:**
+- `Requirement`: The skill or job requirement (free text; keywords like "expert", "familiarity", "proficient" affect emphasis)
+- `Classification`: One of `Essential`, `Important`, `Desirable`, `Implicit`
+- `SelfScore`: Your self-assessed proficiency (0-5)
+
+**Optional columns:**
+- `Notes`: Any evidence or comments
+- `Weight`: (legacy, ignored in v2)
+- `EmphasisOverride`: Manually set emphasis if you don’t want keyword detection
+
+**Emphasis Keywords:**
+The script automatically detects emphasis using keywords in the `Requirement` column:
+- **Critical**: "expert", "deep", "mastery"
+- **Minimal**: "familiarity", "exposure", "basic"
+- **Standard**: All others
+
+The `EmphasisOverride` column can be used to manually specify +0.5, 0, or -0.5 if you want to override keyword detection.
+
+**Usage (v2):**
+```bash
+python job-skill-matrix-scoring-v2.py your_skills.csv
+```
+Or use the generic entry point:
+```bash
+python job-skill-matrix-scoring.py your_skills.csv
+```
+
+**Backward compatibility:**
+- The v1 script and format are still supported for legacy data and tests.
 
 ### Version 1 (Legacy)
 ```csv

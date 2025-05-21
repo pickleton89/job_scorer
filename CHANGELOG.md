@@ -10,10 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Detailed core-gap skill reporting, now including Classification and SelfScore for each gap.
 - New test cases for core-gap detection (`core_gap_test.csv` and `core_gap_test.json`).
 - New test cases for bonus cap functionality (`bonus_cap_test.csv` and `bonus_cap_test.json`).
+- Project directory reorganization: moved scoring scripts to `scoring/`, example/reference CSVs to `data/`, documentation to `docs/`.
+- Added project structure and updated usage instructions in the README to reflect new organization.
 
 ### Changed
 - Implemented a 25% bonus cap: total points from Desirable/Implicit skills are capped at 25% of total points from Essential/Important skills.
 - Enhanced `test_runner.py` to support expected output validation using `.json` files and improved test result formatting.
+- Updated README to document new CSV format, usage, and project structure.
+- Moved non-test CSVs out of the project root into `data/`.
+- Moved implementation roadmap and upgrade documentation into `docs/`.
 
 ### Fixed
 - Removed unused `bonus_weight` local variable in `job-skill-matrix-scoring-v2.py` (resolved lint warning).
