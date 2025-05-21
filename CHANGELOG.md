@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- TBD
+
+## [2.0.0] - 2025-05-20
+### Added
 - New scoring system with 0-5 scale and emphasis modifiers
 - Test environment with sample data and test runner
 - Support for new CSV format with Classification and Requirement columns
@@ -16,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated data model to support new scoring system
 - Modified `load_matrix` to handle both old and new CSV formats
 - Improved error handling and input validation
+- Updated documentation for new features and formats
 
 ### Fixed
 - Resolved issue with percentage calculation in new scoring model

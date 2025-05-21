@@ -140,29 +140,65 @@ def apply_bonus_cap(
 
 
 def compute_scores(df: pd.DataFrame, effective_total_weight: int) -> dict:
-    """Compute core-gap flag, points and %-fit."""
-    # Identify core gap skills (Weight == 3 and SelfScore <= 1)
-    core_gap_mask = (df["Weight"] == 3) & (df["SelfScore"] <= 1)
-    core_gap = core_gap_mask.any()
+    """Compute core-gap flag, points and %-fit using the new scoring system.
     
-    # Get the list of core gap skills if any exist
-    core_gap_skills = []
-    if core_gap:
-        # Get the requirement/skill name for each core gap
-        req_col = [col for col in df.columns if "requirement" in col.lower() or "skill" in col.lower()][0]
-        core_gap_skills = df.loc[core_gap_mask, req_col].tolist()
+    New scoring formula: ClassWt * (1 + EmphMod) * SelfScore
+    - ClassWt: Weight based on classification (Essential=3.0, Important=2.0, etc.)
+    - EmphMod: Emphasis modifier from -0.5 to +0.5 based on requirement text
+    - SelfScore: Self-assessment score from 0-5
     
-    df["WeightedScore"] = df["Weight"] * df["SelfScore"]
-
-    actual_points = int(df["WeightedScore"].sum())
-    max_points = effective_total_weight * 2  # max self-score = 2
-    pct_fit = actual_points / max_points if max_points else 0.0
+    Core gap is now triggered for Essential items with SelfScore <= 2
+    """
+    # Check if we're using the new format with ClassWt and EmphMod
+    new_format = "ClassWt" in df.columns and "EmphMod" in df.columns
+    
+    if new_format:
+        # New scoring logic with emphasis modifiers
+        df["RowScoreRaw"] = df["ClassWt"] * (1 + df["EmphMod"]) * df["SelfScore"]
+        
+        # Core gap: Essential items with score <= 2
+        core_gap_mask = (df["Classification"] == "Essential") & (df["SelfScore"] <= 2)
+        core_gap = core_gap_mask.any()
+        
+        # Get core gap skills if any exist
+        core_gap_skills = []
+        if core_gap:
+            req_col = [col for col in df.columns if "requirement" in col.lower() or "skill" in col.lower()]
+            req_col = req_col[0] if req_col else "Requirement"
+            core_gap_skills = df.loc[core_gap_mask, req_col].tolist()
+        
+        # Calculate points and percentage
+        actual_points = df["RowScoreRaw"].sum()
+        
+        # Maximum possible score (Essential * 1.5 * 5)
+        max_possible_score = 3.0 * 1.5 * 5  # 22.5
+        max_points = len(df) * max_possible_score
+        pct_fit = (actual_points / max_points) if max_points > 0 else 0.0
+        
+    else:
+        # Original scoring logic (for backward compatibility)
+        df["WeightedScore"] = df["Weight"] * df["SelfScore"]
+        
+        # Core gap: Weight 3 items with score <= 1
+        core_gap_mask = (df["Weight"] == 3) & (df["SelfScore"] <= 1)
+        core_gap = core_gap_mask.any()
+        
+        # Get core gap skills if any exist
+        core_gap_skills = []
+        if core_gap:
+            req_col = [col for col in df.columns if "requirement" in col.lower() or "skill" in col.lower()]
+            req_col = req_col[0] if req_col else "Requirement"
+            core_gap_skills = df.loc[core_gap_mask, req_col].tolist()
+        
+        actual_points = df["WeightedScore"].sum()
+        max_points = effective_total_weight * 2  # max self-score = 2
+        pct_fit = actual_points / max_points if max_points > 0 else 0.0
 
     return {
         "core_gap": core_gap,
         "core_gap_skills": core_gap_skills,
-        "actual_points": actual_points,
-        "max_points": max_points,
+        "actual_points": round(actual_points, 2),
+        "max_points": round(max_points, 2),
         "pct_fit": pct_fit,
     }
 
@@ -199,8 +235,10 @@ def main() -> None:
     # ----- Report -----
     pd.set_option("display.max_rows", None)
     print("\nProcessed Matrix (after cap):")
+    # Handle both old (WeightedScore) and new (RowScoreRaw) column names
+    score_col = "RowScoreRaw" if "RowScoreRaw" in df_eff.columns else "WeightedScore"
     print(
-        df_eff[[c for c in df_eff.columns if c != "WeightedScore"] + ["WeightedScore"]]
+        df_eff[[c for c in df_eff.columns if c != score_col] + [score_col]]
     )
 
     print("\n" + "="*50)
