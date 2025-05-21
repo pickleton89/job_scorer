@@ -6,9 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Initial project setup
-- Core job scoring functionality
-- Basic command-line interface
+- New scoring system with 0-5 scale and emphasis modifiers
+- Test environment with sample data and test runner
+- Support for new CSV format with Classification and Requirement columns
+- Comprehensive README with setup instructions
+- Implementation roadmap
+
+### Changed
+- Updated data model to support new scoring system
+- Modified `load_matrix` to handle both old and new CSV formats
+- Improved error handling and input validation
+
+### Fixed
+- Resolved issue with percentage calculation in new scoring model
+- Fixed test runner path resolution
+- Improved documentation and code organization
 
 ## [1.0.0] - 2025-05-20
 ### Added

@@ -41,18 +41,51 @@ import pandas as pd
 # ---------------------------------------------------------------------------
 
 
+# --- Constants ---
+CLASS_WT = {
+    "Essential": 3.0,
+    "Important": 2.0,
+    "Desirable": 1.0,
+    "Implicit": 0.5,
+}
+
+def emphasis_modifier(text: str) -> float:
+    """Return +0.5 (Critical), 0.0 (Standard), or -0.5 (Minimal)."""
+    if not isinstance(text, str):
+        return 0.0
+        
+    t = text.lower()
+    if any(w in t for w in {"expert", "extensive", "demonstrated", "proven", "advanced"}):
+        return +0.5
+    if any(w in t for w in {"familiarity", "exposure", "limited"}):
+        return -0.5
+    return 0.0
+
 def load_matrix(path: Path) -> pd.DataFrame:
     """Load CSV and coerce numeric columns."""
     df = pd.read_csv(path)
-    required_cols = {"Weight", "SelfScore"}
-    if not required_cols.issubset(df.columns):
-        missing = ", ".join(required_cols - set(df.columns))
-        raise ValueError(f"CSV missing required columns: {missing}")
-
-    df["Weight"] = pd.to_numeric(df["Weight"], errors="coerce").fillna(0).astype(int)
-    df["SelfScore"] = (
-        pd.to_numeric(df["SelfScore"], errors="coerce").fillna(0).astype(int)
-    )
+    
+    # Handle new format with Classification and Requirement
+    if "Classification" in df.columns:
+        if not {"Classification", "Requirement"}.issubset(df.columns):
+            raise ValueError("CSV must contain 'Classification' and 'Requirement' columns.")
+            
+        df["ClassWt"] = df["Classification"].map(CLASS_WT).fillna(0)
+        df["EmphMod"] = df["Requirement"].apply(emphasis_modifier)
+        
+        # For backward compatibility, set Weight based on Classification
+        df["Weight"] = df["Classification"].map(CLASS_WT).fillna(0)
+    else:
+        # Original format - keep existing behavior
+        required_cols = {"Weight", "SelfScore"}
+        if not required_cols.issubset(df.columns):
+            missing = ", ".join(required_cols - set(df.columns))
+            raise ValueError(f"CSV missing required columns: {missing}")
+    
+    # Handle numeric columns
+    df["Weight"] = pd.to_numeric(df["Weight"], errors="coerce").fillna(0).astype(float)
+    df["SelfScore"] = pd.to_numeric(df["SelfScore"], errors="coerce").fillna(0).clip(0, 5).astype(int)
+    
     return df
 
 
