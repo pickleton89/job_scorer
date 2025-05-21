@@ -6,6 +6,8 @@ A Python utility for evaluating job fit based on skill matrices. This tool helps
 
 - **Advanced Scoring System**: Evaluates skills on a 0-5 scale with emphasis modifiers
 - **Core-Gap Analysis**: Identifies critical skill gaps in Essential requirements
+- **Optional-Skill Cap**: Weight from `Desirable`/`Implicit` rows is limited to 25 % of core points.
+- **Row Normalisation**: Each requirement is scaled against a 22.5 max to keep scoring fair.
 - **Flexible Input**: Supports both legacy and new CSV formats
 - **Detailed Reporting**: Provides clear feedback on job fit and improvement areas
 - **Backward Compatible**: Works with both old and new scoring systems
@@ -31,7 +33,7 @@ A Python utility for evaluating job fit based on skill matrices. This tool helps
 
 3. **Basic Usage**
    ```bash
-   python scoring/cli.py data/matrix.csv
+   python scoring/cli.py data/matrix.csv   # autodetects v1 vs v2 by headers
    ```
    For v2-specific scoring:
    ```bash
@@ -54,10 +56,14 @@ job_scorer/
 - Place your own skills/job matrix CSVs in the `data/` directory or specify the path as needed.
 - All scoring scripts are now organized under the `scoring/` package for clarity.
 - Test data and test runner scripts are in `tests/`.
+- See [docs/usage.md](docs/usage.md) for extended examples (if present).
 
 ## CSV Formats
 
 ### Version 2 (Recommended)
+
+*Column order doesn’t matter; the script matches by header.*
+
 ```csv
 Requirement,Classification,SelfScore,Notes
 Expert in Python,Essential,5,Used in production projects
@@ -66,22 +72,26 @@ Documentation,Desirable,4,Contributed to team docs
 ```
 
 **Required columns:**
-- `Requirement`: The skill or job requirement (free text; keywords like "expert", "familiarity", "proficient" affect emphasis)
+- `Requirement`: The skill or job requirement (free text; keywords like "expert", "familiarity", "proficient" affect emphasis; *case-insensitive*)
 - `Classification`: One of `Essential`, `Important`, `Desirable`, `Implicit`
 - `SelfScore`: Your self-assessed proficiency (0-5)
 
 **Optional columns:**
 - `Notes`: Any evidence or comments
 - `Weight`: (legacy, ignored in v2)
-- `EmphasisOverride`: Manually set emphasis if you don’t want keyword detection
+- `EmphasisOverride`: Manually set emphasis if you don’t want keyword detection (**must be +0.5 / 0 / -0.5**)
 
 **Emphasis Keywords:**
-The script automatically detects emphasis using keywords in the `Requirement` column:
+The script automatically detects emphasis using keywords in the `Requirement` column (case-insensitive):
 - **Critical**: "expert", "deep", "mastery"
 - **Minimal**: "familiarity", "exposure", "basic"
-- **Standard**: All others
+- **Standard**: (no keyword needed; e.g., "proficient", "experience", or any other text)
 
 The `EmphasisOverride` column can be used to manually specify +0.5, 0, or -0.5 if you want to override keyword detection.
+
+> *Note:* In v2 the script first caps bonus rows (≤25 % of core points)  
+> and then divides every row by the theoretical max (22.5).  
+> That’s why the max total in this example is 67.5, not a simple sum of weights.
 
 **Usage (v2):**
 ```bash
@@ -94,6 +104,7 @@ python job-skill-matrix-scoring.py your_skills.csv
 
 **Backward compatibility:**
 - The v1 script and format are still supported for legacy data and tests.
+- Legacy CSVs **ignore** emphasis and normalisation; results therefore can’t be directly compared to v2 scores.
 
 ### Version 1 (Legacy)
 ```csv
@@ -116,7 +127,7 @@ Project management,1,1,No formal experience
   - `ClassWt`: 3.0 (Essential), 2.0 (Important), 1.0 (Desirable), 0.5 (Implicit)
   - `EmphMod`: +0.5 (Critical), 0.0 (Standard), -0.5 (Minimal)
   - `SelfScore`: 0-5 rating
-- **Core Gap**: Triggered when Essential items have SelfScore ≤ 2
+- **Core Gap**: Triggered when any Essential item has **SelfScore ≤ 1**
 
 ### Version 1 (Legacy)
 - **Formula**: `Weight * SelfScore`
@@ -161,7 +172,14 @@ The tool provides:
 
 ## License
 
-[Specify your license here]
+Distributed under the MIT License. See `LICENSE` for details.
+
+## Tests
+
+To run all tests:
+```bash
+pytest -q tests/
+```
 
 ## Contributing
 
