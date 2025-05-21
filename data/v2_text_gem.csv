@@ -1,0 +1,22 @@
+Requirement,Keywords / Phrases,Notes / What to Demonstrate,Classification,SelfScore
+Analyze large datasets (public/internal/clinical),"Data mining, large datasets, clinical/preclinical data, big data tools","Show experience analyzing complex, large-scale public or proprietary datasets.",Essential,4
+Data mining techniques,"Data mining, KDD, feature selection, clustering algorithms","Describe methodology, tools used, and significant results from projects.",Essential,2
+Machine learning model development,"Machine learning, model development, classification, regression, validation","Detail end-to-end ML model design, training, validation, and deployment.",Essential,1
+Programming proficiency,"Python, R, SQL, scripting, code optimization","Showcase hands-on coding projects, pipeline development, or scripting.",Essential,3
+ML frameworks experience,"TensorFlow, PyTorch, Scikit-learn, Keras",Provide examples of actual projects or products built using these tools.,Essential,1
+Data visualization tools,"Tableau, Power BI, D3.js, Matplotlib, Seaborn","Present reports, dashboards, or visualizations that communicate insights.",Important,2
+Protein target identification (immunotherapy focus),"Protein targets, immunotherapy, AI, computational bio, drug discovery",Explain how AI/bioinformatics bridged to new immunotherapy target discovery.,Essential,5
+Drug optimization opportunity identification,"Drug optimization, opportunity analysis, lead generation, pipeline strategy","Illustrate impact on drug R&D, pipeline progression, or candidate selection.",Essential,5
+Clinical trial data analysis,"Clinical data, biostatistics, trial design, SAS, FDA reporting",Demonstrate experience analyzing real-world clinical trial datasets.,Essential,2
+Bioinformatics and computational biology methods,"Bioinformatics, computational biology, omics analysis, pathway tools, genomics","Show application of omics, NGS, pathway or knowledge mining methods.",Important,5
+Interpreting and communicating technical results,"Communication, technical presentations, written reports, data visualization",Effectively convey complex findings to diverse audiences via reports/presentations.,Important,5
+Cross-functional collaboration,"Collaboration, researchers, clinicians, stakeholders, teamwork","Describe experience in multi-team projects, achieving shared objectives.",Important,5
+Advanced degree (MSc/PhD in relevant field),"MSc, PhD, Computer Science, Biostats, Bioinfo, research",Confirm possession of required advanced academic qualification in field.,Essential,5
+"Relevant years of experience (ML/data mining, clinical data)","3+ years, relevant experience, ML roles, clinical data projects","Meet minimum years of experience, emphasizing clinical/biomedical data.",Essential,5
+Immunotherapy domain knowledge,"Immunotherapy, cancer, biostats, clinical trials, immunology",Articulate understanding of disease/therapy area and its research context.,Important,5
+Containerization proficiency,"Docker, Kubernetes, container orchestration, microservices",Show experience deploying or running workloads in containerized environments.,Desirable,2
+Data security and compliance awareness,"HIPAA, compliance, data privacy, GDPR, secure coding",Explain knowledge or implementation of data protection in regulated settings.,Desirable,1
+Agile methodologies and version control,"Agile, Scrum, Git, JIRA, CI/CD practices",Illustrate use of Agile practices and version control in projects.,Desirable,3
+Alignment with company values and culture,"Innovation, collaboration, diversity, equity, teamwork","Provide examples of teamwork, creative problem-solving, and supporting DEI.",Important,5
+"Passion for impact, learning, and growth","Growth, learning, challenge, continuous improvement, proactive",Express motivation for ongoing development and contributing to impactful work.,Important,5
+Adherence to work location and logistics,"Redmond WA, Princeton NJ, remote/onsite, hybrid model",Confirm willingness and ability to work effectively in designated setting.,Essential,5
