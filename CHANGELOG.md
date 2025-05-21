@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Removed unused `bonus_weight` local variable in `job-skill-matrix-scoring-v2.py` (resolved lint warning).
 
+### Removed
+- Removed edge case and emphasis modifier test files (`edge_cases_test.csv`, `edge_cases_test.json`, `emphasis_modifier_test.csv`, `emphasis_modifier_test.json`) from the v2 test suite to focus on core and bonus cap scenarios.
+
 ## [2.0.0] - 2025-05-20
 ### Added
 - New scoring system with 0-5 scale and emphasis modifiers
