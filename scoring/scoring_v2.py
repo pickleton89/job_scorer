@@ -196,25 +196,19 @@ def compute_scores(df: pd.DataFrame, effective_total_weight: int) -> dict:
             core_gap_skills = df.loc[core_gap_mask, [req_col, "Classification", "SelfScore"]].to_dict('records')
         
         # Calculate points and percentage
-        actual_points = df["RowScoreRaw"].sum()
-        
         # Apply bonus cap (25% of core weight)
-        core_weight = df[df["Classification"].isin(["Essential", "Important"])]["ClassWt"].sum()
-        bonus_weight = df[df["Classification"].isin(["Desirable", "Implicit"])]["ClassWt"].sum()
-        
-        # Cap bonus points at 25% of core weight
+        core_weight = df[df["Classification"].isin(["Essential", "Important"])] ["ClassWt"].sum()
+        bonus_weight = df[df["Classification"].isin(["Desirable", "Implicit"])] ["ClassWt"].sum()
         max_bonus_points = core_weight * 0.25 * 5  # Max 5 points per bonus item
-        actual_bonus_points = df[df["Classification"].isin(["Desirable", "Implicit"])]["RowScoreRaw"].sum()
-        
+        actual_bonus_points = df[df["Classification"].isin(["Desirable", "Implicit"])] ["RowScoreRaw"].sum()
         if actual_bonus_points > max_bonus_points:
             # Scale down bonus points to fit within the cap
             bonus_scale = max_bonus_points / actual_bonus_points if actual_bonus_points > 0 else 0
             df.loc[df["Classification"].isin(["Desirable", "Implicit"]), "RowScoreRaw"] *= bonus_scale
-            actual_points = df["RowScoreRaw"].sum()
-        
-        # Maximum possible score (Essential * 1.5 * 5)
-        max_possible_score = 3.0 * 1.5 * 5  # 22.5
-        max_points = len(df) * max_possible_score
+        # Now normalise each row by 22.5 (theoretical max per row)
+        df["RowScoreNorm"] = df["RowScoreRaw"] / 22.5
+        actual_points = df["RowScoreNorm"].sum()
+        max_points = len(df) * 1.0
         pct_fit = (actual_points / max_points) if max_points > 0 else 0.0
         
     else:
