@@ -15,13 +15,13 @@
   - [x] Add CLASS_WT constant for classification weights
   - [x] Implement emphasis_modifier function
   - [x] Modify load_matrix to handle both old and new formats
-- [ ] Modify the scoring algorithm to use the new 0-5 scale
-  - [ ] Update compute_scores function
-  - [ ] Adjust percentage calculation
-  - [ ] Update core-gap detection for 0-5 scale
-- [ ] Implement the emphasis modifier logic
-  - [ ] Integrate emphasis modifier into scoring
-  - [ ] Test with various emphasis keywords
+- [x] Modify the scoring algorithm to use the new 0-5 scale
+  - [x] Update compute_scores function
+  - [x] Adjust percentage calculation
+  - [x] Update core-gap detection for 0-5 scale
+- [x] Implement the emphasis modifier logic
+  - [x] Integrate emphasis modifier into scoring
+  - [x] Test with various emphasis keywords
 
 ## 3. Enhancements
 - [ ] Update the core-gap detection
