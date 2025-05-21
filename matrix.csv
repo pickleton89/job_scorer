@@ -1,0 +1,22 @@
+Requirement/Skill,Keywords/Phrases,Notes / What to Demonstrate,Weight,SelfScore
+Machine learning model development,"Machine learning, model development, classification, deep learning, neural networks, supervised learning",End-to-end ML pipeline with measurable outcomes,3,1
+Programming proficiency,"Python, R, SQL, Jupyter, pandas, scikit-learn",Show production-quality code and data pipelines,3,1
+"Advanced degree (MSc/PhD, relevant field)","MSc, PhD, Computer Science, Biostats, Bioinfo, Computational Biology",Required academic credentials with research focus,3,2
+Analyze large datasets,"Data mining, large datasets, clinical/preclinical data, big data, ETL, data wrangling",Demonstrate complex dataset handling at scale,3,1
+Identify protein targets (immunotherapy focus),"Protein targets, immunotherapy, AI, computational bio, epitope mapping, target discovery",Bridge computational methods with biological outcomes,3,2
+Bioinformatics/computational biology methods,"Bioinformatics, computational biology, NGS, omics, pathway analysis, sequence analysis",Applied bioinformatics tools with real datasets,2,2
+Drug optimization opportunity identification,"Drug optimization, opportunity analysis, lead discovery, pharmacokinetics, molecular modeling",Impact metrics on drug development pipeline,2,2
+ML frameworks experience,"TensorFlow, PyTorch, Keras, JAX, scikit-learn, XGBoost",Projects using multiple frameworks for comparison,2,1
+Years of experience (ML/data mining),"3+ years, relevant experience, industry experience, biotech/pharma",Demonstrated progression of responsibility,2,2
+Immunotherapy domain knowledge,"Immunotherapy, cancer, biostats, clinical trials, immunology, antibodies",Domain-specific applications of ML methods,2,2
+Clinical trial data analysis,"Clinical data, biostatistics, trial design, RCTs, endpoints, FDA requirements",Experience with real-world trial data analysis,2,1
+Data visualization tools,"Tableau, Power BI, D3.js, matplotlib, seaborn, plotly",Interactive dashboards and decision-support tools,1,1
+Interpreting and communicating results,"Communication, technical/non-technical, presentations, storytelling, data narrative",Examples of influencing decisions with analysis,1,2
+Cross-functional collaboration,"Collaboration, researchers, clinicians, stakeholders, multidisciplinary, teamwork",Impact in matrix organization environments,1,2
+Communication skills,"Written, verbal, visualization, reports, documentation, papers",Technical writing samples and presentation skills,1,2
+Containerization,"Docker, Kubernetes, containers, cloud deployment, CI/CD",Experience with containerized ML pipelines,1,1
+Data security/compliance,"HIPAA, compliance, data privacy, PHI, GDPR, data governance",Implementation in regulated biomedical setting,1,1
+Agile/version control,"Agile, Scrum, Git, GitHub, MLOps, reproducibility",Modern development and collaboration practices,1,2
+Work location/logistics,"Redmond WA, Princeton NJ, remote/onsite, hybrid, relocation",Ability to work in required setting,1,1
+Values/culture fit,"Innovation, collaboration, diversity, equity, inclusion, teamwork",Demonstrated alignment with organizational values,1,2
+Passion for impact and learning,"Growth, learning, challenge, continuous improvement, innovation",Show self-directed professional development,1,2
