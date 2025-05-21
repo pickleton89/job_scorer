@@ -1,0 +1,5 @@
+{
+  "core_gap": false,
+  "tolerance": 0.1,
+  "expected_max_bonus_percent": 25.0
+}

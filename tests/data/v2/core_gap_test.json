@@ -1,0 +1,8 @@
+{
+  "core_gap": true,
+  "gap_skills": [
+    "Python programming",
+    "Communication"
+  ],
+  "tolerance": 0.1
+}

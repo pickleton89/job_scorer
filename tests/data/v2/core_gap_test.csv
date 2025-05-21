@@ -1,0 +1,7 @@
+Requirement,Classification,SelfScore,Notes
+Python programming,Essential,1,Core gap - score too low
+Data analysis,Important,1,Acceptable score
+Project management,Desirable,0,Not a core gap
+Machine learning,Essential,3,Good score
+Communication,Important,0,Core gap - score too low
+Team collaboration,Desirable,2,Bonus skill

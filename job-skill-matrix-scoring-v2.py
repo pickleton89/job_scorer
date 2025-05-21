@@ -99,6 +99,19 @@ def apply_bonus_cap(
     cap_pct: float | None = 0.25,
     cap_rows: int | None = None,
 ) -> tuple[pd.DataFrame, int]:
+    """Apply bonus cap to the dataframe.
+    
+    In the new scoring system, we cap the total bonus points (from Desirable/Implicit items)
+    to 25% of the total core points (from Essential/Important items).
+    
+    Args:
+        df_in: Input dataframe with skill scores
+        cap_pct: Maximum bonus as a percentage of core weight (default: 0.25)
+        cap_rows: Maximum number of bonus rows to consider (for backward compatibility)
+        
+    Returns:
+        Tuple of (modified dataframe, number of bonus rows included)
+    """
     """Return (**new DF**, **effective_total_weight**).
 
     • **Row-limit mode**   (`cap_rows` is int) – keep at most *cap_rows* Weight-1 rows.
@@ -147,8 +160,18 @@ def compute_scores(df: pd.DataFrame, effective_total_weight: int) -> dict:
     - EmphMod: Emphasis modifier from -0.5 to +0.5 based on requirement text
     - SelfScore: Self-assessment score from 0-5
     
-    Core gap is now triggered for Essential items with SelfScore <= 2
+    Core gap is triggered for:
+    - Essential items with SelfScore <= 2
+    - Important items with SelfScore <= 1 (optional, can be configured)
     """
+    # Configuration for core gap detection
+    CORE_GAP_THRESHOLDS = {
+        "Essential": 2,  # Score <= 2 is a gap
+        "Important": 1,  # Score <= 1 is a gap
+        "Desirable": 0,  # No gaps for Desirable
+        "Implicit": 0    # No gaps for Implicit
+    }
+    
     # Check if we're using the new format with ClassWt and EmphMod
     new_format = "ClassWt" in df.columns and "EmphMod" in df.columns
     
@@ -156,8 +179,13 @@ def compute_scores(df: pd.DataFrame, effective_total_weight: int) -> dict:
         # New scoring logic with emphasis modifiers
         df["RowScoreRaw"] = df["ClassWt"] * (1 + df["EmphMod"]) * df["SelfScore"]
         
-        # Core gap: Essential items with score <= 2
-        core_gap_mask = (df["Classification"] == "Essential") & (df["SelfScore"] <= 2)
+        # Core gap detection based on classification and score thresholds
+        core_gap_mask = pd.Series(False, index=df.index)
+        for class_type, threshold in CORE_GAP_THRESHOLDS.items():
+            if threshold > 0:  # Only check if threshold is set
+                class_mask = (df["Classification"] == class_type) & (df["SelfScore"] <= threshold)
+                core_gap_mask = core_gap_mask | class_mask
+        
         core_gap = core_gap_mask.any()
         
         # Get core gap skills if any exist
@@ -165,10 +193,24 @@ def compute_scores(df: pd.DataFrame, effective_total_weight: int) -> dict:
         if core_gap:
             req_col = [col for col in df.columns if "requirement" in col.lower() or "skill" in col.lower()]
             req_col = req_col[0] if req_col else "Requirement"
-            core_gap_skills = df.loc[core_gap_mask, req_col].tolist()
+            core_gap_skills = df.loc[core_gap_mask, [req_col, "Classification", "SelfScore"]].to_dict('records')
         
         # Calculate points and percentage
         actual_points = df["RowScoreRaw"].sum()
+        
+        # Apply bonus cap (25% of core weight)
+        core_weight = df[df["Classification"].isin(["Essential", "Important"])]["ClassWt"].sum()
+        bonus_weight = df[df["Classification"].isin(["Desirable", "Implicit"])]["ClassWt"].sum()
+        
+        # Cap bonus points at 25% of core weight
+        max_bonus_points = core_weight * 0.25 * 5  # Max 5 points per bonus item
+        actual_bonus_points = df[df["Classification"].isin(["Desirable", "Implicit"])]["RowScoreRaw"].sum()
+        
+        if actual_bonus_points > max_bonus_points:
+            # Scale down bonus points to fit within the cap
+            bonus_scale = max_bonus_points / actual_bonus_points if actual_bonus_points > 0 else 0
+            df.loc[df["Classification"].isin(["Desirable", "Implicit"]), "RowScoreRaw"] *= bonus_scale
+            actual_points = df["RowScoreRaw"].sum()
         
         # Maximum possible score (Essential * 1.5 * 5)
         max_possible_score = 3.0 * 1.5 * 5  # 22.5
@@ -179,7 +221,7 @@ def compute_scores(df: pd.DataFrame, effective_total_weight: int) -> dict:
         # Original scoring logic (for backward compatibility)
         df["WeightedScore"] = df["Weight"] * df["SelfScore"]
         
-        # Core gap: Weight 3 items with score <= 1
+        # Original format - use old core gap detection for backward compatibility
         core_gap_mask = (df["Weight"] == 3) & (df["SelfScore"] <= 1)
         core_gap = core_gap_mask.any()
         
@@ -188,10 +230,20 @@ def compute_scores(df: pd.DataFrame, effective_total_weight: int) -> dict:
         if core_gap:
             req_col = [col for col in df.columns if "requirement" in col.lower() or "skill" in col.lower()]
             req_col = req_col[0] if req_col else "Requirement"
-            core_gap_skills = df.loc[core_gap_mask, req_col].tolist()
+            core_gap_skills = [{"skill": skill, "Weight": 3, "SelfScore": 1} 
+                             for skill in df.loc[core_gap_mask, req_col].tolist()]
+        
+        # Calculate points with bonus cap for original format
+        core_points = df[df["Weight"] >= 2]["WeightedScore"].sum()
+        bonus_points = df[df["Weight"] < 2]["WeightedScore"].sum()
+        max_bonus = core_points * 0.25  # Cap bonus at 25% of core points
+        
+        if bonus_points > max_bonus:
+            bonus_scale = max_bonus / bonus_points if bonus_points > 0 else 0
+            df.loc[df["Weight"] < 2, "WeightedScore"] *= bonus_scale
         
         actual_points = df["WeightedScore"].sum()
-        max_points = effective_total_weight * 2  # max self-score = 2
+        max_points = effective_total_weight * 5  # max self-score is now 5
         pct_fit = actual_points / max_points if max_points > 0 else 0.0
 
     return {

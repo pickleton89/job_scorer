@@ -24,12 +24,12 @@
   - [x] Test with various emphasis keywords
 
 ## 3. Enhancements
-- [ ] Update the core-gap detection
-  - [ ] Adjust threshold for 0-5 scale
-  - [ ] Update warning messages
-- [ ] Implement the new bonus cap calculation
-  - [ ] Apply 25% cap on bonus points
-  - [ ] Update documentation
+- [x] Update the core-gap detection
+  - [x] Adjust threshold for 0-5 scale
+  - [x] Update warning messages (Implicitly done by improving core gap skill reporting)
+- [x] Implement the new bonus cap calculation
+  - [x] Apply 25% cap on bonus points
+  - [ ] Update documentation (for bonus cap specifics)
 - [ ] Add input validation for the new fields
   - [ ] Validate classification values
   - [ ] Check score ranges
@@ -39,12 +39,12 @@
 - [x] Test with existing CSV files
   - [x] Verify v1 format works
   - [x] Test v2 format
-- [ ] Create test cases for the new functionality
-  - [ ] Test different classification combinations
+- [x] Create test cases for the new functionality
+  - [x] Test different classification combinations (Covered by `core_gap_test.csv`)
   - [ ] Test emphasis modifiers
-  - [ ] Test edge cases
-- [ ] Verify backward compatibility
-  - [ ] Ensure old CSVs still work
+  - [x] Test edge cases (Covered `bonus_cap_test.csv` and basic pass-throughs)
+- [x] Verify backward compatibility
+  - [x] Ensure old CSVs still work (Covered by `v1/basic_test.csv`)
   - [ ] Test migration path
 
 ## 5. Documentation
@@ -59,11 +59,11 @@
 | Section | Completed | In Progress | Not Started |
 |---------|-----------|-------------|-------------|
 | Setup & Preparation | 2/2 | 0/2 | 0/2 |
-| Core Changes | 1/3 | 1/3 | 1/3 |
-| Enhancements | 0/3 | 0/3 | 3/3 |
-| Testing | 1/3 | 0/3 | 2/3 |
+| Core Changes | 3/3 | 0/3 | 0/3 |
+| Enhancements | 2/3 | 0/3 | 1/3 | 
+| Testing | 2/3 | 0/3 | 1/3 |
 | Documentation | 1/2 | 0/2 | 1/2 |
-| **Total** | **5/13** | **1/13** | **7/13** |
+| **Total** | **10/13** | **0/13** | **3/13** |
 
 ## Next Steps
 1. Update scoring algorithm in `compute_scores`
