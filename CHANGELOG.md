@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New test cases for bonus cap functionality (`bonus_cap_test.csv` and `bonus_cap_test.json`).
 - Project directory reorganization: moved scoring scripts to `scoring/`, example/reference CSVs to `data/`, documentation to `docs/`.
 - Added project structure and updated usage instructions in the README to reflect new organization.
+- Verified all v2 tests pass after reorganization and test runner update.
 
 ### Changed
 - Implemented a 25% bonus cap: total points from Desirable/Implicit skills are capped at 25% of total points from Essential/Important skills.

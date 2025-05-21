@@ -46,6 +46,7 @@
 - [x] Verify backward compatibility
   - [x] Ensure old CSVs still work (Covered by `v1/basic_test.csv`)
   - [ ] Test migration path
+- [x] All v2 tests pass after project reorganization and test runner update (project stable)
 
 ## 5. Documentation
 - [x] Update the CHANGELOG.md

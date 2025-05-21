@@ -51,9 +51,9 @@ def main():
     args = parser.parse_args()
     
     # Determine which script to test
-    script_name = "job-skill-matrix-scoring.py"
+    script_name = "scoring/cli.py"
     if args.version == "v2":
-        script_name = "job-skill-matrix-scoring-v2.py"  # Will be created later
+        script_name = "scoring/scoring_v2.py"
     
     # Get the absolute path to the script
     script_path = str(Path(__file__).parent.parent / script_name)
