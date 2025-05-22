@@ -30,19 +30,32 @@ from __future__ import annotations
 import argparse
 import sys
 from dataclasses import dataclass
-from typing import Dict, List, Union
 from pathlib import Path
+from typing import TYPE_CHECKING, TypeAlias, TypeVar, TypedDict
 
 import pandas as pd
+
+if TYPE_CHECKING:
+    from pandas import DataFrame
+
+# Type variables for generic functions
+T = TypeVar('T')
+KT = TypeVar('KT')  # Key type
+VT = TypeVar('VT')  # Value type
 
 # ---------------------------------------------------------------------------
 # IO helpers
 # ---------------------------------------------------------------------------
 
 
+# --- Type Definitions ---
+
+# Type aliases for better readability
+ClassificationType: TypeAlias = str  # One of "Essential", "Important", "Desirable", "Implicit"
+
 # --- Constants ---
 # Classification weights
-CLASS_WT = {
+CLASS_WT: dict[ClassificationType, float] = {
     "Essential": 3.0,
     "Important": 2.0,
     "Desirable": 1.0,
@@ -78,7 +91,7 @@ def emphasis_modifier(text: str) -> float:
               non-string inputs gracefully by treating them as standard emphasis.
     
     Returns:
-        float: The emphasis modifier to apply to the score calculation.
+        The emphasis modifier to apply to the score calculation.
             - +0.5: For critical/high-emphasis requirements (e.g., "expert", "extensive")
             - 0.0: For standard requirements (default)
             - -0.5: For minimal/low-emphasis requirements (e.g., "familiarity", "exposure")
@@ -92,7 +105,7 @@ def emphasis_modifier(text: str) -> float:
         0.0
         >>> emphasis_modifier("")
         0.0
-        >>> emphasis_modifier(None)
+        >>> emphasis_modifier(None)  # type: ignore[arg-type]
         0.0
     """
     # Handle non-string input gracefully
@@ -103,18 +116,18 @@ def emphasis_modifier(text: str) -> float:
         t = text.lower()
         
         # Keywords indicating critical/high-emphasis requirements
-        high_emphasis_keywords = {
+        high_emphasis_keywords: frozenset[str] = frozenset({
             "expert", "extensive", "demonstrated", "proven", "advanced",
             "strong", "deep", "comprehensive", "thorough", "mastery",
-            "extensively", "proficient", "extensive", "proven"
-        }
+            "extensively", "proficient"
+        })
         
         # Keywords indicating minimal/low-emphasis requirements
-        low_emphasis_keywords = {
+        low_emphasis_keywords: frozenset[str] = frozenset({
             "familiarity", "exposure", "limited", "basic", "awareness",
             "some", "introductory", "beginner", "novice", "entry-level",
             "basic understanding", "conceptual knowledge"
-        }
+        })
         
         # Check for high emphasis keywords
         if any(keyword in t for keyword in high_emphasis_keywords):
@@ -128,7 +141,8 @@ def emphasis_modifier(text: str) -> float:
         
     except Exception as e:
         # Log the error and return default value
-        print(f"Warning: Error processing emphasis for text: {text[:50]}... Error: {e}", file=sys.stderr)
+        print(f"Warning: Error processing emphasis for text: {text[:50]}... Error: {e}", 
+              file=sys.stderr)
         return 0.0
 
 def load_matrix(path: Path) -> pd.DataFrame:
@@ -234,6 +248,22 @@ class CoreGapSkill:
     
     Attributes:
         name: The name or description of the skill/requirement.
+        classification: The classification of the skill.
+        self_score: The self-assessed score (0-5) for this skill.
+        threshold: The minimum acceptable score for this skill's classification.
+    """
+    name: str
+    classification: ClassificationType
+    self_score: int
+    threshold: int
+    """Represents a skill that has a core gap (below threshold score).
+    
+    This class encapsulates information about a skill that has been identified as having
+    a core gap, meaning the self-assessed score is below the minimum threshold for its
+    classification. It provides methods to determine the severity of the gap.
+    
+    Attributes:
+        name: The name or description of the skill/requirement.
         classification: The classification of the skill (e.g., 'Essential', 'Important').
         self_score: The self-assessed score (0-5) for this skill.
         threshold: The minimum acceptable score for this skill's classification.
@@ -285,7 +315,24 @@ class CoreGapSkill:
             return "High" if self.self_score <= 1 else "Medium"
         return "Medium" if self.self_score == 0 else "Low"
 
-def compute_scores(df: pd.DataFrame) -> Dict[str, Union[bool, List[CoreGapSkill], float]]:
+class ScoreResult(TypedDict):
+    """Typed dictionary for score calculation results.
+    
+    Attributes:
+        core_gap: Whether any core gaps exist in the skills
+        core_gap_skills: List of skills with core gaps
+        actual_points: Total points scored
+        max_points: Maximum possible points
+        pct_fit: Percentage fit (0.0 to 1.0)
+    """
+    core_gap: bool
+    core_gap_skills: list[CoreGapSkill]
+    actual_points: float
+    max_points: float
+    pct_fit: float
+
+
+def compute_scores(df: DataFrame) -> ScoreResult:
     """Compute core-gap flag, points and %-fit using the new scoring system.
     
     This function processes a DataFrame containing skill matrix data and calculates:
@@ -350,7 +397,7 @@ def compute_scores(df: pd.DataFrame) -> Dict[str, Union[bool, List[CoreGapSkill]
         
         # Core gap detection based on classification and score thresholds
         core_gap_mask = pd.Series(False, index=df.index)
-        core_gap_skills: List[CoreGapSkill] = []
+        core_gap_skills: list[CoreGapSkill] = []
         
         for class_type, threshold in CORE_GAP_THRESHOLDS.items():
             if threshold > 0:  # Only check if threshold is set
@@ -410,33 +457,15 @@ def compute_scores(df: pd.DataFrame) -> Dict[str, Union[bool, List[CoreGapSkill]
 # ---------------------------------------------------------------------------
 
 
-def main() -> None:
-    """Main entry point for the job skill matrix scoring tool.
-    
-    This function:
-    1. Parses command line arguments
-    2. Loads and validates the skill matrix CSV
-    3. Computes scores and identifies core gaps
-    4. Generates a detailed report with recommendations
-    
-    Usage:
-        python scoring_v2.py path/to/skills.csv
-    
-    The CSV must contain the following columns:
-    - Classification: One of 'Essential', 'Important', 'Desirable', or 'Implicit'
-    - Requirement: The skill or requirement description (used for emphasis detection)
-    - SelfScore: Your self-assessment score from 0 to 5
+def parse_args() -> argparse.Namespace:
+    """Parse command line arguments.
     
     Returns:
-        None: Outputs results to stdout and exits with appropriate status code
-        
+        Parsed command line arguments.
+    
     Raises:
-        FileNotFoundError: If the specified CSV file doesn't exist
-        PermissionError: If the file cannot be read due to permissions
-        ValueError: If the CSV is malformed or contains invalid data
-        SystemExit: With status code 1 if an error occurs during processing
+        SystemExit: If there's an error parsing the arguments.
     """
-    # Set up argument parser with detailed help
     parser = argparse.ArgumentParser(
         description=(
             "Score your job application fit against a skill matrix.\n\n"
@@ -467,13 +496,34 @@ def main() -> None:
         help="Show program's version number and exit"
     )
     
-    # Parse arguments
     try:
-        args = parser.parse_args()
+        return parser.parse_args()
     except Exception as e:
         print(f"Error parsing arguments: {e}", file=sys.stderr)
         parser.print_help()
         sys.exit(1)
+
+
+def main() -> None:
+    """Main entry point for the job skill matrix scoring tool.
+    
+    This function:
+    1. Parses command line arguments
+    2. Loads and validates the skill matrix CSV
+    3. Computes scores and identifies core gaps
+    4. Generates a detailed report with recommendations
+    
+    Returns:
+        None: Outputs results to stdout and exits with appropriate status code
+        
+    Raises:
+        FileNotFoundError: If the specified CSV file doesn't exist
+        PermissionError: If the file cannot be read due to permissions
+        ValueError: If the CSV is malformed or contains invalid data
+        SystemExit: With status code 1 if an error occurs during processing
+    """
+    # Parse command line arguments
+    args = parse_args()
     
     # Load and validate the skill matrix
     try:

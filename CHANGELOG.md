@@ -6,6 +6,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Modern Python 3.13 type hint syntax throughout the codebase
+- `ScoreResult` TypedDict for better type safety in score calculations
+- Type aliases for improved code readability
+- Enhanced function and method signatures with precise type hints
+- Better type variable usage for generic functions
+
+### Refactored
+- Simplified imports by removing unused standard library imports
+- Restructured argument parsing into a separate `parse_args()` function
+- Improved type safety in `CoreGapSkill` class with proper type hints
+- Enhanced docstrings with detailed type information
+- Standardized return type annotations across all functions
+- Improved error handling with more specific type hints
+
+### Fixed
+- Resolved all lint warnings related to type hints
+- Fixed potential type-related issues in function returns
+- Ensured consistent type usage throughout the codebase
+- Addressed all mypy type checking issues
+
+## [2.0.1] - 2025-05-22
+### Added
 - Comprehensive type hints throughout the codebase for better code clarity and IDE support
 - Detailed docstrings for all functions and classes following Google style guide
 - Input validation and error handling for all public functions
