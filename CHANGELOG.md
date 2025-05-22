@@ -24,6 +24,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `EMPHASIS_MODIFIER_LOW = -0.5`
   - `THEORETICAL_MAX_RAW_SCORE_PER_ROW = 22.5`
   - `CORE_GAP_THRESHOLDS` dictionary
+- Removed old scoring logic and backward compatibility code:
+  - Deleted `apply_bonus_cap` function as bonus capping is now handled in `compute_scores`
+  - Removed `effective_total_weight` parameter from `compute_scores`
+  - Simplified scoring logic to only handle the new format
+  - Removed unused `math` import
+- Improved code organization and maintainability:
+  - Consolidated bonus capping logic in one place
+  - Used more efficient pandas operations
+  - Added clearer variable names and comments
 
 ### Changed
 - Implemented a 25% bonus cap: total points from Desirable/Implicit skills are capped at 25% of total points from Essential/Important skills.
