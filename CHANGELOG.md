@@ -6,6 +6,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Comprehensive type hints throughout the codebase for better code clarity and IDE support
+- Detailed docstrings for all functions and classes following Google style guide
+- Input validation and error handling for all public functions
+- Improved command-line interface with better help text and error messages
+- Support for `--version` flag to display the tool version
+- Enhanced error messages with actionable guidance for users
+- Expanded keyword matching in `emphasis_modifier` for better detection of skill emphasis
+- Input validation for `CoreGapSkill` class to ensure data integrity
+- Graceful handling of keyboard interrupts (Ctrl+C)
+
+### Refactored
+- Restructured `CoreGapSkill` class with proper validation and documentation
+- Improved error handling in `load_matrix` with specific error messages
+- Enhanced `emphasis_modifier` with better keyword matching and error handling
+- Restructured `main` function for better separation of concerns
+- Added input validation for all function parameters
+- Improved code organization with clear section comments
+- Standardized error reporting to stderr
+- Enhanced console output formatting for better readability
+- Added proper exit codes for different error conditions
+- Improved type safety throughout the codebase
+
+### Changed
+- Updated documentation to reflect all code improvements
+- Improved error messages to be more user-friendly and actionable
+- Enhanced console output formatting for better readability
+- Made error messages more specific and helpful
+- Standardized on double quotes for string literals
+- Improved code organization and structure
+
+### Fixed
+- Fixed potential issues with non-string inputs in `emphasis_modifier`
+- Addressed all lint warnings and type checking issues
+- Improved handling of edge cases in score calculations
+- Fixed potential issues with file handling and resource cleanup
+- Ensured consistent behavior across different Python versions
+- Fixed potential issues with command-line argument parsing
+- Addressed potential issues with file encoding when reading CSV files
+- Fixed potential issues with string comparison in classification checks
+
+## [2.0.0] - 2025-05-20
+### Added
 - Configurable core-gap detection thresholds (e.g., Essential <=2, Important <=1).
 - Detailed core-gap skill reporting, now including Classification and SelfScore for each gap.
 - Improved core gap skills reporting in the console output with clearer formatting and more actionable information.
