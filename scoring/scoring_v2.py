@@ -42,11 +42,29 @@ import pandas as pd
 
 
 # --- Constants ---
+# Classification weights
 CLASS_WT = {
     "Essential": 3.0,
     "Important": 2.0,
     "Desirable": 1.0,
     "Implicit": 0.5,
+}
+
+# Scoring system constants
+MAX_SELF_SCORE = 5  # Maximum self-assessment score (0-5 scale)
+BONUS_CAP_PERCENTAGE = 0.25  # Bonus points capped at 25% of core points
+EMPHASIS_MODIFIER_HIGH = +0.5  # For critical/advanced requirements
+EMPHASIS_MODIFIER_LOW = -0.5   # For basic/familiarity requirements
+THEORETICAL_MAX_RAW_SCORE_PER_ROW = (
+    CLASS_WT["Essential"] * (1 + EMPHASIS_MODIFIER_HIGH) * MAX_SELF_SCORE  # 3 * 1.5 * 5 = 22.5
+)
+
+# Core gap detection thresholds
+CORE_GAP_THRESHOLDS = {
+    "Essential": 2,   # Score <= 2 is a gap
+    "Important": 1,   # Score <= 1 is a gap
+    "Desirable": 0,   # No gaps for Desirable
+    "Implicit": 0     # No gaps for Implicit
 }
 
 def emphasis_modifier(text: str) -> float:
