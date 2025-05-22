@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Type aliases for improved code readability
 - Enhanced function and method signatures with precise type hints
 - Better type variable usage for generic functions
+- New configuration classes for better organization of constants:
+  - `ScoringConfig`: Centralizes scoring-related settings
+  - `ClassificationConfig`: Manages skill classifications and weights
+  - `EmphasisIndicators`: Handles emphasis detection keywords
 
 ### Refactored
 - Simplified imports by removing unused standard library imports
@@ -19,12 +23,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced docstrings with detailed type information
 - Standardized return type annotations across all functions
 - Improved error handling with more specific type hints
+- Centralized all configuration in dedicated classes for better maintainability
+- Made configuration immutable using `frozen=True` dataclasses
+- Added type-safe access to configuration values
 
 ### Fixed
 - Resolved all lint warnings related to type hints
 - Fixed potential type-related issues in function returns
 - Ensured consistent type usage throughout the codebase
 - Addressed all mypy type checking issues
+- Fixed configuration-related magic numbers by centralizing them in config classes
 
 ## [2.0.1] - 2025-05-22
 ### Added

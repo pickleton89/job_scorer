@@ -29,9 +29,9 @@ from __future__ import annotations
 
 import argparse
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, TypeAlias, TypeVar, TypedDict
+from typing import TYPE_CHECKING, ClassVar, TypeAlias, TypeVar, TypedDict, NamedTuple
 
 import pandas as pd
 
@@ -53,33 +53,104 @@ VT = TypeVar('VT')  # Value type
 # Type aliases for better readability
 ClassificationType: TypeAlias = str  # One of "Essential", "Important", "Desirable", "Implicit"
 
-# --- Constants ---
-# Classification weights
-CLASS_WT: dict[ClassificationType, float] = {
-    "Essential": 3.0,
-    "Important": 2.0,
-    "Desirable": 1.0,
-    "Implicit": 0.5,
-}
+class EmphasisIndicators(NamedTuple):
+    """Container for emphasis indicator keywords."""
+    high_emphasis: tuple[str, ...] = (
+        "expert", "extensive", "strong", "proven", "deep", "comprehensive",
+        "advanced", "thorough", "significant", "considerable", "demonstrated",
+        "extensively", "expertise", "mastery", "proficiency", "fluent"
+    )
+    low_emphasis: tuple[str, ...] = (
+        "basic", "familiarity", "familiar", "awareness", "aware", "some",
+        "knowledge of", "understanding of", "exposure to", "introduction",
+        "fundamental", "beginner", "novice", "entry-level", "basic understanding"
+    )
 
-# Scoring system constants
-MAX_SELF_SCORE = 5  # Maximum self-assessment score (0-5 scale)
-BONUS_CAP_PERCENTAGE = 0.25  # Bonus points capped at 25% of core points
-EMPHASIS_MODIFIER_HIGH = +0.5  # For critical/advanced requirements
-EMPHASIS_MODIFIER_LOW = -0.5   # For basic/familiarity requirements
-THEORETICAL_MAX_RAW_SCORE_PER_ROW = (
-    CLASS_WT["Essential"] * (1 + EMPHASIS_MODIFIER_HIGH) * MAX_SELF_SCORE  # 3 * 1.5 * 5 = 22.5
+
+@dataclass(frozen=True)
+class ScoringConfig:
+    """Configuration for the scoring system.
+    
+    Attributes:
+        max_self_score: Maximum possible self-assessment score (0-5 scale).
+        bonus_cap_percentage: Maximum bonus points as a percentage of core points.
+        emphasis_modifier_high: Modifier for high-emphasis requirements.
+        emphasis_modifier_low: Modifier for low-emphasis requirements.
+        emphasis_indicators: Keywords for detecting emphasis in requirement text.
+    """
+    max_self_score: int = 5
+    bonus_cap_percentage: float = 0.25
+    emphasis_modifier_high: float = 0.5
+    emphasis_modifier_low: float = -0.5
+    emphasis_indicators: EmphasisIndicators = field(default_factory=EmphasisIndicators)
+    
+    @property
+    def theoretical_max_raw_score_per_row(self) -> float:
+        """Calculate the theoretical maximum raw score per row."""
+        return (
+            ClassificationConfig.ESSENTIAL.weight * 
+            (1 + self.emphasis_modifier_high) * 
+            self.max_self_score  # 3 * 1.5 * 5 = 22.5
+        )
+
+
+@dataclass(frozen=True)
+class ClassificationConfig:
+    """Configuration for skill classifications."""
+    name: str
+    weight: float
+    gap_threshold: int = 0  # Default: no gap detection
+    
+    # Class-level instances for each classification type
+    ESSENTIAL: ClassVar[ClassificationConfig]
+    IMPORTANT: ClassVar[ClassificationConfig]
+    DESIRABLE: ClassVar[ClassificationConfig]
+    IMPLICIT: ClassVar[ClassificationConfig]
+    
+    @classmethod
+    def get_all(cls) -> list[ClassificationConfig]:
+        """Get all classification configurations."""
+        return [cls.ESSENTIAL, cls.IMPORTANT, cls.DESIRABLE, cls.IMPLICIT]
+    
+    @classmethod
+    def get_weights_dict(cls) -> dict[str, float]:
+        """Get classification weights as a dictionary."""
+        return {c.name: c.weight for c in cls.get_all()}
+    
+    @classmethod
+    def get_gap_thresholds(cls) -> dict[str, int]:
+        """Get core gap thresholds as a dictionary."""
+        return {c.name: c.gap_threshold for c in cls.get_all()}
+
+
+# Initialize classification configurations
+ClassificationConfig.ESSENTIAL = ClassificationConfig(
+    name="Essential", 
+    weight=3.0, 
+    gap_threshold=2  # Score <= 2 is a gap
+)
+ClassificationConfig.IMPORTANT = ClassificationConfig(
+    name="Important", 
+    weight=2.0, 
+    gap_threshold=1  # Score <= 1 is a gap
+)
+ClassificationConfig.DESIRABLE = ClassificationConfig(
+    name="Desirable", 
+    weight=1.0, 
+    gap_threshold=0  # No gaps
+)
+ClassificationConfig.IMPLICIT = ClassificationConfig(
+    name="Implicit", 
+    weight=0.5, 
+    gap_threshold=0  # No gaps
 )
 
-# Core gap detection thresholds
-CORE_GAP_THRESHOLDS = {
-    "Essential": 2,   # Score <= 2 is a gap
-    "Important": 1,   # Score <= 1 is a gap
-    "Desirable": 0,   # No gaps for Desirable
-    "Implicit": 0     # No gaps for Implicit
-}
+# Global configuration instance
+SCORING_CONFIG = ScoringConfig()
+CLASS_WT = ClassificationConfig.get_weights_dict()
+CORE_GAP_THRESHOLDS = ClassificationConfig.get_gap_thresholds()
 
-def emphasis_modifier(text: str) -> float:
+def emphasis_modifier(text: str, config: ScoringConfig = SCORING_CONFIG) -> float:
     """Determine the emphasis modifier for a given requirement text.
     
     Analyzes the text of a requirement to determine if it indicates a higher or lower
@@ -89,6 +160,7 @@ def emphasis_modifier(text: str) -> float:
     Args:
         text: The requirement text to analyze. Should be a string, but will handle
               non-string inputs gracefully by treating them as standard emphasis.
+        config: Scoring configuration containing emphasis settings.
     
     Returns:
         The emphasis modifier to apply to the score calculation.
@@ -99,51 +171,28 @@ def emphasis_modifier(text: str) -> float:
     Examples:
         >>> emphasis_modifier("Expert knowledge of Python")
         0.5
-        >>> emphasis_modifier("Basic familiarity with Git")
+        >>> emphasis_modifier("Basic understanding of Git")
         -0.5
-        >>> emphasis_modifier("Experience with cloud platforms")
+        >>> emphasis_modifier("Python programming")
         0.0
         >>> emphasis_modifier("")
         0.0
         >>> emphasis_modifier(None)  # type: ignore[arg-type]
         0.0
     """
-    # Handle non-string input gracefully
+    # Handle non-string inputs gracefully
     if not isinstance(text, str) or not text.strip():
         return 0.0
+        
+    text_lower = text.lower()
     
-    try:
-        t = text.lower()
-        
-        # Keywords indicating critical/high-emphasis requirements
-        high_emphasis_keywords: frozenset[str] = frozenset({
-            "expert", "extensive", "demonstrated", "proven", "advanced",
-            "strong", "deep", "comprehensive", "thorough", "mastery",
-            "extensively", "proficient"
-        })
-        
-        # Keywords indicating minimal/low-emphasis requirements
-        low_emphasis_keywords: frozenset[str] = frozenset({
-            "familiarity", "exposure", "limited", "basic", "awareness",
-            "some", "introductory", "beginner", "novice", "entry-level",
-            "basic understanding", "conceptual knowledge"
-        })
-        
-        # Check for high emphasis keywords
-        if any(keyword in t for keyword in high_emphasis_keywords):
-            return +0.5
+    # Check for emphasis indicators
+    if any(indicator in text_lower for indicator in config.emphasis_indicators.high_emphasis):
+        return config.emphasis_modifier_high
+    if any(indicator in text_lower for indicator in config.emphasis_indicators.low_emphasis):
+        return config.emphasis_modifier_low
             
-        # Check for low emphasis keywords
-        if any(keyword in t for keyword in low_emphasis_keywords):
-            return -0.5
-            
-        return 0.0
-        
-    except Exception as e:
-        # Log the error and return default value
-        print(f"Warning: Error processing emphasis for text: {text[:50]}... Error: {e}", 
-              file=sys.stderr)
-        return 0.0
+    return 0.0
 
 def load_matrix(path: Path) -> pd.DataFrame:
     """Load and validate the skill matrix CSV file.
@@ -216,7 +265,7 @@ def load_matrix(path: Path) -> pd.DataFrame:
         df["SelfScore"] = (
             pd.to_numeric(df["SelfScore"], errors="coerce")
             .fillna(0)
-            .clip(0, MAX_SELF_SCORE)
+            .clip(0, SCORING_CONFIG.max_self_score)
             .astype(int)
         )
     except Exception as e:
@@ -398,8 +447,9 @@ def compute_scores(df: DataFrame) -> ScoreResult:
         # Core gap detection based on classification and score thresholds
         core_gap_mask = pd.Series(False, index=df.index)
         core_gap_skills: list[CoreGapSkill] = []
+        gap_thresholds = ClassificationConfig.get_gap_thresholds()
         
-        for class_type, threshold in CORE_GAP_THRESHOLDS.items():
+        for class_type, threshold in gap_thresholds.items():
             if threshold > 0:  # Only check if threshold is set
                 class_mask = (df["Classification"] == class_type) & (df["SelfScore"] <= threshold)
                 core_gap_mask = core_gap_mask | class_mask
@@ -425,7 +475,7 @@ def compute_scores(df: DataFrame) -> ScoreResult:
         core_weight = df[df["Classification"].isin(["Essential", "Important"])]["ClassWt"].sum()
         
         # Calculate bonus points and apply cap if needed
-        max_bonus_points = core_weight * BONUS_CAP_PERCENTAGE * MAX_SELF_SCORE
+        max_bonus_points = core_weight * SCORING_CONFIG.bonus_cap_percentage * SCORING_CONFIG.max_self_score
         bonus_mask = df["Classification"].isin(["Desirable", "Implicit"])
         actual_bonus_points = df.loc[bonus_mask, "RowScoreRaw"].sum()
         
@@ -435,7 +485,7 @@ def compute_scores(df: DataFrame) -> ScoreResult:
             df.loc[bonus_mask, "RowScoreRaw"] *= bonus_scale
         
         # Normalize scores and calculate final metrics
-        df["RowScoreNorm"] = df["RowScoreRaw"] / THEORETICAL_MAX_RAW_SCORE_PER_ROW
+        df["RowScoreNorm"] = df["RowScoreRaw"] / SCORING_CONFIG.theoretical_max_raw_score_per_row
         actual_points = df["RowScoreNorm"].sum()
         max_points = len(df) * 1.0  # Each row contributes up to 1.0 after normalization
         pct_fit = (actual_points / max_points) if max_points > 0 else 0.0
