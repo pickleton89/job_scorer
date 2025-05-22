@@ -13,6 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Project directory reorganization: moved scoring scripts to `scoring/`, example/reference CSVs to `data/`, documentation to `docs/`.
 - Added project structure and updated usage instructions in the README to reflect new organization.
 - Verified all v2 tests pass after reorganization and test runner update.
+- Added global constants for scoring parameters to improve code maintainability.
+- Created implementation roadmap for v2 refactoring in `docs/implementation-roadmap-v2.md`.
+
+### Refactored
+- Moved magic numbers to named constants in `scoring_v2.py`:
+  - `MAX_SELF_SCORE = 5`
+  - `BONUS_CAP_PERCENTAGE = 0.25`
+  - `EMPHASIS_MODIFIER_HIGH = +0.5`
+  - `EMPHASIS_MODIFIER_LOW = -0.5`
+  - `THEORETICAL_MAX_RAW_SCORE_PER_ROW = 22.5`
+  - `CORE_GAP_THRESHOLDS` dictionary
 
 ### Changed
 - Implemented a 25% bonus cap: total points from Desirable/Implicit skills are capped at 25% of total points from Essential/Important skills.
