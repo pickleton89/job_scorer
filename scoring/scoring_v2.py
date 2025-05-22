@@ -189,11 +189,11 @@ def emphasis_modifier(text: str, config: ScoringConfig = SCORING_CONFIG) -> floa
     t = text.lower().strip()
     
     # Check for high emphasis indicators first
-    if any(keyword in t for keyword in config.emphasis_indicators.high_emphasis_keywords):
+    if any(keyword in t for keyword in config.emphasis_indicators.high_emphasis):
         return config.emphasis_modifier_high
         
     # Then check for low emphasis indicators
-    if any(keyword in t for keyword in config.emphasis_indicators.low_emphasis_keywords):
+    if any(keyword in t for keyword in config.emphasis_indicators.low_emphasis):
         return config.emphasis_modifier_low
         
     return 0.0  # No emphasis modifier

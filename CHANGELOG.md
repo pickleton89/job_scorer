@@ -48,6 +48,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed inconsistent string formatting across the codebase
 - Addressed potential issues with string comparison in UI output
 - Ensured consistent error message formatting throughout the application
+- Fixed `EmphasisIndicators` attribute access in `emphasis_modifier` function
+- Resolved test failures related to emphasis detection
+- Ensured proper handling of edge cases in score calculations
 
 ### Refactored
 - Simplified imports by removing unused standard library imports
