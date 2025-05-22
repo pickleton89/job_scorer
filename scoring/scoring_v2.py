@@ -68,6 +68,20 @@ class EmphasisIndicators(NamedTuple):
 
 
 @dataclass(frozen=True)
+class UIConfig:
+    """Configuration for UI-related constants.
+    
+    Attributes:
+        separator_length: Length of separator lines in console output
+        default_indent: Default indentation for nested output
+        max_line_width: Maximum line width for console output
+    """
+    separator_length: int = 50
+    default_indent: int = 2
+    max_line_width: int = 80
+
+
+@dataclass(frozen=True)
 class ScoringConfig:
     """Configuration for the scoring system.
     
@@ -77,12 +91,14 @@ class ScoringConfig:
         emphasis_modifier_high: Modifier for high-emphasis requirements.
         emphasis_modifier_low: Modifier for low-emphasis requirements.
         emphasis_indicators: Keywords for detecting emphasis in requirement text.
+        ui: UI-related configuration
     """
     max_self_score: int = 5
     bonus_cap_percentage: float = 0.25
     emphasis_modifier_high: float = 0.5
     emphasis_modifier_low: float = -0.5
     emphasis_indicators: EmphasisIndicators = field(default_factory=EmphasisIndicators)
+    ui: UIConfig = field(default_factory=UIConfig)
     
     @property
     def theoretical_max_raw_score_per_row(self) -> float:
@@ -145,8 +161,9 @@ ClassificationConfig.IMPLICIT = ClassificationConfig(
     gap_threshold=0  # No gaps
 )
 
-# Global configuration instance
+# Global configuration instances
 SCORING_CONFIG = ScoringConfig()
+UI_CONFIG = SCORING_CONFIG.ui
 CLASS_WT = ClassificationConfig.get_weights_dict()
 CORE_GAP_THRESHOLDS = ClassificationConfig.get_gap_thresholds()
 
@@ -163,36 +180,23 @@ def emphasis_modifier(text: str, config: ScoringConfig = SCORING_CONFIG) -> floa
         config: Scoring configuration containing emphasis settings.
     
     Returns:
-        The emphasis modifier to apply to the score calculation.
-            - +0.5: For critical/high-emphasis requirements (e.g., "expert", "extensive")
-            - 0.0: For standard requirements (default)
-            - -0.5: For minimal/low-emphasis requirements (e.g., "familiarity", "exposure")
-            
-    Examples:
-        >>> emphasis_modifier("Expert knowledge of Python")
-        0.5
-        >>> emphasis_modifier("Basic understanding of Git")
-        -0.5
-        >>> emphasis_modifier("Python programming")
-        0.0
-        >>> emphasis_modifier("")
-        0.0
-        >>> emphasis_modifier(None)  # type: ignore[arg-type]
-        0.0
+        float: The emphasis modifier to apply to the score (config.emphasis_modifier_high for high,
+              config.emphasis_modifier_low for low, 0.0 for neutral).
     """
-    # Handle non-string inputs gracefully
-    if not isinstance(text, str) or not text.strip():
+    if not isinstance(text, str):
         return 0.0
         
-    text_lower = text.lower()
+    t = text.lower().strip()
     
-    # Check for emphasis indicators
-    if any(indicator in text_lower for indicator in config.emphasis_indicators.high_emphasis):
+    # Check for high emphasis indicators first
+    if any(keyword in t for keyword in config.emphasis_indicators.high_emphasis_keywords):
         return config.emphasis_modifier_high
-    if any(indicator in text_lower for indicator in config.emphasis_indicators.low_emphasis):
+        
+    # Then check for low emphasis indicators
+    if any(keyword in t for keyword in config.emphasis_indicators.low_emphasis_keywords):
         return config.emphasis_modifier_low
-            
-    return 0.0
+        
+    return 0.0  # No emphasis modifier
 
 def load_matrix(path: Path) -> pd.DataFrame:
     """Load and validate the skill matrix CSV file.
@@ -606,9 +610,10 @@ def main() -> None:
     # Display the processed matrix with scores
     print(df_raw[[c for c in df_raw.columns if c != "RowScoreRaw"] + ["RowScoreRaw"]])
 
-    print("\n" + "="*50)
-    print("SCORECARD SUMMARY")
-    print("="*50)
+    separator = "-" * UI_CONFIG.separator_length
+    print(f"\n{separator}")
+    print("VERDICT".center(UI_CONFIG.separator_length))
+    print(separator)
     
     # Core gap status
     core_gap_status = "YES" if metrics["core_gap"] else "NO"
@@ -620,13 +625,13 @@ def main() -> None:
         important_gaps = [g for g in metrics["core_gap_skills"] if g.classification == "Important"]
         
         if essential_gaps:
-            print(f"   ⚠️  {len(essential_gaps)} Essential skill(s) scored ≤ {CORE_GAP_THRESHOLDS['Essential']}.")
+            print(f"   {len(essential_gaps)} Essential skill(s) scored {CORE_GAP_THRESHOLDS['Essential']}.")
         if important_gaps:
-            print(f"   ⚠️  {len(important_gaps)} Important skill(s) scored ≤ {CORE_GAP_THRESHOLDS['Important']}.")
+            print(f"   {len(important_gaps)} Important skill(s) scored {CORE_GAP_THRESHOLDS['Important']}.")
         
-        print("   ⚠️  Treat as a red flag — address these gaps before applying.")
+        print("   Treat as a red flag — address these gaps before applying.")
     else:
-        print("   ✓  All essential and important skills meet the minimum score requirements.")
+        print("   All essential and important skills meet the minimum score requirements.")
     
     # Points calculation
     print(f"\n2. Actual points    : {metrics['actual_points']} / {metrics['max_points']}")
@@ -639,17 +644,17 @@ def main() -> None:
     
     # Add disclaimer about % Fit when core gaps are present
     if metrics["core_gap"]:
-        print("   ⚠️  DISCLAIMER: % Fit is misleading when core gaps are present.")
-        print("   ⚠️  Address core gaps first before considering the % Fit value.")
+        print("   DISCLAIMER: % Fit is misleading when core gaps are present.")
+        print("   Address core gaps first before considering the % Fit value.")
     
     fit_guidance = (
-        "   ✓  Excellent overall fit → Apply immediately, emphasize strengths"
+        "   Excellent overall fit → Apply immediately, emphasize strengths"
         if pct >= 0.80 else
-        "   ✓  Good fit; minor gaps → Apply; line up examples or quick up-skilling"
+        "   Good fit; minor gaps → Apply; line up examples or quick up-skilling"
         if pct >= 0.65 else
-        "   ⚠️  Possible fit; several gaps → Decide whether to apply now or build skills first"
+        "   Possible fit; several gaps → Decide whether to apply now or build skills first"
         if pct >= 0.50 else
-        "   ⚠️  Significant gaps → Up-skill before investing in an application"
+        "   Significant gaps → Up-skill before investing in an application"
     )
     print(fit_guidance)
     
