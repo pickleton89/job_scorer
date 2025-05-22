@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Configurable core-gap detection thresholds (e.g., Essential <=2, Important <=1).
 - Detailed core-gap skill reporting, now including Classification and SelfScore for each gap.
+- Improved core gap skills reporting in the console output with clearer formatting and more actionable information.
 - New test cases for core-gap detection (`core_gap_test.csv` and `core_gap_test.json`).
 - New test cases for bonus cap functionality (`bonus_cap_test.csv` and `bonus_cap_test.json`).
 - Project directory reorganization: moved scoring scripts to `scoring/`, example/reference CSVs to `data/`, documentation to `docs/`.
@@ -29,10 +30,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed `effective_total_weight` parameter from `compute_scores`
   - Simplified scoring logic to only handle the new format
   - Removed unused `math` import
+  - Removed support for old CSV format in `load_matrix`
+  - Removed `--cap` argument from command line interface
 - Improved code organization and maintainability:
   - Consolidated bonus capping logic in one place
   - Used more efficient pandas operations
   - Added clearer variable names and comments
+  - Enhanced error handling and input validation
+  - Improved documentation and help text
 
 ### Changed
 - Implemented a 25% bonus cap: total points from Desirable/Implicit skills are capped at 25% of total points from Essential/Important skills.
@@ -43,6 +48,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Removed unused `bonus_weight` local variable in `job-skill-matrix-scoring-v2.py` (resolved lint warning).
+
+### Changed
+- Updated core gap reporting to show counts of Essential/Important skills below thresholds
+- Simplified core gap skills listing to show each skill with its classification and self-score
+- Made core gap reporting more consistent with the application's terminology
 
 ### Removed
 - Removed edge case and emphasis modifier test files (`edge_cases_test.csv`, `edge_cases_test.json`, `emphasis_modifier_test.csv`, `emphasis_modifier_test.json`) from the v2 test suite to focus on core and bonus cap scenarios.

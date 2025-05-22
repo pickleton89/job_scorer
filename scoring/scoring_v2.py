@@ -29,7 +29,9 @@ from __future__ import annotations
 
 import argparse
 import sys
+from dataclasses import dataclass
 from pathlib import Path
+from typing import List
 
 import pandas as pd
 
@@ -77,29 +79,48 @@ def emphasis_modifier(text: str) -> float:
     return 0.0
 
 def load_matrix(path: Path) -> pd.DataFrame:
-    """Load CSV and coerce numeric columns."""
-    df = pd.read_csv(path)
+    """Load and validate the skill matrix CSV file.
     
-    # Handle new format with Classification and Requirement
-    if "Classification" in df.columns:
-        if not {"Classification", "Requirement"}.issubset(df.columns):
-            raise ValueError("CSV must contain 'Classification' and 'Requirement' columns.")
-            
-        df["ClassWt"] = df["Classification"].map(CLASS_WT).fillna(0)
-        df["EmphMod"] = df["Requirement"].apply(emphasis_modifier)
+    Args:
+        path: Path to the CSV file containing skill matrix data
         
-        # For backward compatibility, set Weight based on Classification
-        df["Weight"] = df["Classification"].map(CLASS_WT).fillna(0)
-    else:
-        # Original format - keep existing behavior
-        required_cols = {"Weight", "SelfScore"}
-        if not required_cols.issubset(df.columns):
-            missing = ", ".join(required_cols - set(df.columns))
-            raise ValueError(f"CSV missing required columns: {missing}")
+    Returns:
+        pd.DataFrame: Processed DataFrame with required columns for scoring
+        
+    Raises:
+        ValueError: If required columns are missing or data is invalid
+    """
+    # Define required and optional columns
+    required_columns = {"Classification", "Requirement", "SelfScore"}
     
-    # Handle numeric columns
-    df["Weight"] = pd.to_numeric(df["Weight"], errors="coerce").fillna(0).astype(float)
-    df["SelfScore"] = pd.to_numeric(df["SelfScore"], errors="coerce").fillna(0).clip(0, 5).astype(int)
+    # Read the CSV file
+    try:
+        df = pd.read_csv(path)
+    except Exception as e:
+        raise ValueError(f"Error reading CSV file: {e}")
+    
+    # Validate required columns
+    missing_columns = required_columns - set(df.columns)
+    if missing_columns:
+        raise ValueError(
+            f"CSV is missing required columns: {', '.join(missing_columns)}. "
+            "Required columns are: Classification, Requirement, SelfScore"
+        )
+    
+    # Add derived columns
+    df["ClassWt"] = df["Classification"].map(CLASS_WT).fillna(0)
+    df["EmphMod"] = df["Requirement"].apply(emphasis_modifier)
+    
+    # For backward compatibility with some reporting code
+    df["Weight"] = df["Classification"].map(CLASS_WT).fillna(0)
+    
+    # Ensure SelfScore is a valid integer between 0 and 5
+    df["SelfScore"] = (
+        pd.to_numeric(df["SelfScore"], errors="coerce")
+        .fillna(0)
+        .clip(0, MAX_SELF_SCORE)
+        .astype(int)
+    )
     
     return df
 
@@ -108,6 +129,21 @@ def load_matrix(path: Path) -> pd.DataFrame:
 # Scoring logic
 # ---------------------------------------------------------------------------
 
+
+@dataclass
+class CoreGapSkill:
+    """Represents a skill that has a core gap (below threshold score)."""
+    name: str
+    classification: str
+    self_score: int
+    threshold: int
+    
+    @property
+    def severity(self) -> str:
+        """Return a human-readable severity level."""
+        if self.classification == "Essential":
+            return "High" if self.self_score <= 1 else "Medium"
+        return "Medium" if self.self_score == 0 else "Low"
 
 def compute_scores(df: pd.DataFrame) -> dict:
     """Compute core-gap flag, points and %-fit using the new scoring system.
@@ -120,25 +156,46 @@ def compute_scores(df: pd.DataFrame) -> dict:
     Core gap is triggered for:
     - Essential items with SelfScore <= 2
     - Important items with SelfScore <= 1 (optional, can be configured)
+    
+    Returns:
+        dict: Dictionary containing scoring results with the following keys:
+            - core_gap: bool - Whether any core gaps exist
+            - core_gap_skills: List[CoreGapSkill] - List of skills with core gaps
+            - actual_points: float - Total points scored (rounded to 2 decimal places)
+            - max_points: float - Maximum possible points (rounded to 2 decimal places)
+            - pct_fit: float - Percentage fit (0.0 to 1.0)
     """
     # Calculate raw scores with emphasis modifiers
     df["RowScoreRaw"] = df["ClassWt"] * (1 + df["EmphMod"]) * df["SelfScore"]
     
     # Core gap detection based on classification and score thresholds
     core_gap_mask = pd.Series(False, index=df.index)
+    core_gap_skills: List[CoreGapSkill] = []
+    
+    # Find the requirement/skill column name
+    req_col = next((col for col in df.columns if "requirement" in col.lower() or "skill" in col.lower()), "Requirement")
+    
     for class_type, threshold in CORE_GAP_THRESHOLDS.items():
         if threshold > 0:  # Only check if threshold is set
             class_mask = (df["Classification"] == class_type) & (df["SelfScore"] <= threshold)
             core_gap_mask = core_gap_mask | class_mask
+            
+            # Add gap skills for this classification
+            if class_mask.any():
+                gap_rows = df[class_mask]
+                for _, row in gap_rows.iterrows():
+                    core_gap_skills.append(CoreGapSkill(
+                        name=row[req_col],
+                        classification=row["Classification"],
+                        self_score=row["SelfScore"],
+                        threshold=threshold
+                    ))
     
-    core_gap = core_gap_mask.any()
+    # Sort gaps by classification (Essential first) and then by self_score (lowest first)
+    classification_order = {"Essential": 0, "Important": 1, "Desirable": 2, "Implicit": 3}
+    core_gap_skills.sort(key=lambda x: (classification_order[x.classification], x.self_score))
     
-    # Get core gap skills if any exist
-    core_gap_skills = []
-    if core_gap:
-        req_col = [col for col in df.columns if "requirement" in col.lower() or "skill" in col.lower()]
-        req_col = req_col[0] if req_col else "Requirement"
-        core_gap_skills = df.loc[core_gap_mask, [req_col, "Classification", "SelfScore"]].to_dict('records')
+    core_gap = len(core_gap_skills) > 0
     
     # Calculate points and percentage
     # Apply bonus cap (25% of core weight)
@@ -176,22 +233,26 @@ def compute_scores(df: pd.DataFrame) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Compute fit score from a skill-matrix CSV."
+        description="Compute fit score from a skill-matrix CSV.\n\n"
+        "The CSV must contain the following columns:\n"
+        "- Classification: One of 'Essential', 'Important', 'Desirable', or 'Implicit'\n"
+        "- Requirement: The skill or requirement description (used for emphasis detection)\n"
+        "- SelfScore: Your self-assessment score from 0 to 5"
     )
     parser.add_argument(
-        "csv", type=Path, help="Path to CSV with Weight & SelfScore columns"
-    )
-    parser.add_argument(
-        "--cap",
-        type=float,
-        default=0.25,
-        help="Bonus cap: ≤1 → percent mode; >1 → row-limit mode (int)",
+        "csv",
+        type=Path,
+        help="Path to CSV with Classification, Requirement, and SelfScore columns"
     )
     args = parser.parse_args()
 
-    df_raw = load_matrix(args.csv)
+    try:
+        df_raw = load_matrix(args.csv)
+    except ValueError as e:
+        print(f"Error loading skill matrix: {e}", file=sys.stderr)
+        sys.exit(1)
 
-    # Process the raw matrix directly - bonus capping is now handled in compute_scores
+    # Process the matrix - bonus capping is handled in compute_scores
     metrics = compute_scores(df_raw)
 
 
@@ -204,14 +265,23 @@ def main() -> None:
     print("SCORECARD SUMMARY")
     print("="*50)
     
-    # Core gap assessment
+    # Core gap status
     core_gap_status = "YES" if metrics["core_gap"] else "NO"
     print(f"\n1. Core gap present : {core_gap_status}")
+    
     if metrics["core_gap"]:
-        print("   ⚠️  At least one must-have skill (Weight 3) was self-scored 0 or 1.")
-        print("   ⚠️  Treat as a red flag — address the gap before applying.")
+        # Report on each classification with gaps
+        essential_gaps = [g for g in metrics["core_gap_skills"] if g.classification == "Essential"]
+        important_gaps = [g for g in metrics["core_gap_skills"] if g.classification == "Important"]
+        
+        if essential_gaps:
+            print(f"   ⚠️  {len(essential_gaps)} Essential skill(s) scored ≤ {CORE_GAP_THRESHOLDS['Essential']}.")
+        if important_gaps:
+            print(f"   ⚠️  {len(important_gaps)} Important skill(s) scored ≤ {CORE_GAP_THRESHOLDS['Important']}.")
+        
+        print("   ⚠️  Treat as a red flag — address these gaps before applying.")
     else:
-        print("   ✓  All Weight 3 items are self-scored 2. You clear the 'minimum bar'.")
+        print("   ✓  All essential and important skills meet the minimum score requirements.")
     
     # Points calculation
     print(f"\n2. Actual points    : {metrics['actual_points']} / {metrics['max_points']}")
@@ -246,11 +316,12 @@ def main() -> None:
         print("   Note: Core gap overrides the %-Fit tier.")
         
         # Print the core gap skills
-        print("\n5. Core Gap Skills (Weight=3, SelfScore≤1):")
-        for skill in metrics["core_gap_skills"]:
-            print(f"   • {skill}")
+        print("\n5. Core Gap Skills:")
+        for gap in metrics["core_gap_skills"]:
+            print(f"   • \"{gap.name}\" (Classification: {gap.classification}, SelfScore: {gap.self_score})")
+        
         print("\n   Use as a to-do list: supply stronger evidence or up-skill")
-        print("   until you can honestly self-score 2 on these items.")
+        print("   until you can honestly self-score above the threshold for these items.")
     else:
         # No core gap present, verdict based on % Fit
         pct = metrics["pct_fit"]
@@ -275,8 +346,12 @@ def main() -> None:
     print("-"*50)
     
     if metrics["core_gap"]:
-        print("1. Focus on closing the core gap skills listed above.")
+        print("1. Focus on closing the high and medium severity gaps first.")
         print("2. Re-evaluate after addressing these critical skills.")
+        print("3. For each gap, consider:")
+        print("   - Can you find stronger evidence from your experience?")
+        print("   - What specific training or practice would improve your score?")
+        print("   - Are there alternative skills you could highlight to compensate?")
     else:
         if pct >= 0.80:
             print("1. Apply immediately - you're an excellent match!")
