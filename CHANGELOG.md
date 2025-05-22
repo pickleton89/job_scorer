@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `EmphasisIndicators`: Handles emphasis detection keywords
   - `UIConfig`: Centralizes UI-related constants and formatting
 - Added type-safe access to all configuration values
+- Standardized string formatting using f-strings throughout the codebase
+- Added consistent error message formatting with "Error:" prefix
+- Improved core gap reporting with clear "≤" indicators
 
 ### Refactored
 - Simplified imports by removing unused standard library imports
@@ -30,6 +33,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced all magic numbers with named constants from configuration
 - Moved UI-related strings and formatting to configuration
 - Updated `emphasis_modifier` to use configuration values instead of magic numbers
+- Standardized UI output formatting with consistent section headers
+- Improved error message clarity and consistency
+- Removed all string concatenation in favor of f-strings
 
 ### Fixed
 - Resolved all lint warnings related to type hints
@@ -39,6 +45,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed configuration-related magic numbers by centralizing them in config classes
 - Removed duplicate `@dataclass` decorator from `UIConfig`
 - Fixed UI output formatting to be more consistent and configurable
+- Fixed inconsistent string formatting across the codebase
+- Addressed potential issues with string comparison in UI output
+- Ensured consistent error message formatting throughout the application
 
 ### Refactored
 - Simplified imports by removing unused standard library imports

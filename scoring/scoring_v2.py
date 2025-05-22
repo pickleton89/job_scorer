@@ -601,7 +601,7 @@ def main() -> None:
         metrics = compute_scores(df_raw)
     except Exception as e:
         print(f"Error calculating scores: {e}", file=sys.stderr)
-        print("\nThe skill matrix data appears to be invalid. Please check your input.", file=sys.stderr)
+        print("\nError: The skill matrix data appears to be invalid. Please check your input.", file=sys.stderr)
         sys.exit(1)
 
 
@@ -625,9 +625,9 @@ def main() -> None:
         important_gaps = [g for g in metrics["core_gap_skills"] if g.classification == "Important"]
         
         if essential_gaps:
-            print(f"   {len(essential_gaps)} Essential skill(s) scored {CORE_GAP_THRESHOLDS['Essential']}.")
+            print(f"   {len(essential_gaps)} Essential skill(s) scored ≤ {CORE_GAP_THRESHOLDS['Essential']}.")
         if important_gaps:
-            print(f"   {len(important_gaps)} Important skill(s) scored {CORE_GAP_THRESHOLDS['Important']}.")
+            print(f"   {len(important_gaps)} Important skill(s) scored ≤ {CORE_GAP_THRESHOLDS['Important']}.")
         
         print("   Treat as a red flag — address these gaps before applying.")
     else:
@@ -691,9 +691,9 @@ def main() -> None:
         print(f"\n4. Verdict          : {verdict}")
     
     # Add next steps guidance
-    print("\n" + "-"*50)
-    print("RECOMMENDED NEXT STEPS")
-    print("-"*50)
+    print(f"\n{separator}")
+    print("RECOMMENDED NEXT STEPS".center(UI_CONFIG.separator_length))
+    print(separator)
     
     if metrics["core_gap"]:
         print("1. Focus on closing the high and medium severity gaps first.")
