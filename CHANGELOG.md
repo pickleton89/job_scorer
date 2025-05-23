@@ -35,6 +35,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
       - Real-world job requirement examples
       - Custom configuration testing
     - All tests passing with 100% coverage of emphasis_modifier() function
+  - **Chunk 3**: Comprehensive unit tests for core scoring logic
+    - Created `tests/unit/test_scoring.py` with 16 test methods covering:
+      - Core gap detection for Essential (≤2) and Important (≤1) skills
+      - Raw score calculation with emphasis modifiers and classification weights
+      - Bonus point capping mechanism (25% of core points for Desirable/Implicit)
+      - Score normalization and percentage fit calculation
+      - CoreGapSkill severity levels (High/Medium/Low) and sorting
+      - Input validation, edge cases, and error handling
+      - Alternative column naming and empty DataFrame scenarios
+    - All tests passing with comprehensive coverage of compute_scores() function
+    - Combined test coverage: 48% of scoring_v2.py (33 tests total)
 - Preserved existing integration test system alongside new unit tests
 
 ### Refactored
