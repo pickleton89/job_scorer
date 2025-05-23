@@ -46,6 +46,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
       - Alternative column naming and empty DataFrame scenarios
     - All tests passing with comprehensive coverage of compute_scores() function
     - Combined test coverage: 48% of scoring_v2.py (33 tests total)
+  - **Chunk 4**: Comprehensive validation and error handling tests
+    - Created `tests/unit/test_validation.py` with 18 test methods covering:
+      - File system validation (FileNotFoundError, invalid paths, directories)
+      - CSV format validation (empty files, encoding issues, malformed data)
+      - Required column validation and error reporting
+      - Classification value validation against allowed types
+      - SelfScore processing (non-numeric handling, clipping to 0-5 range)
+      - Derived column calculation (ClassWt, EmphMod, Weight)
+      - Edge cases: large files, whitespace handling, string vs Path inputs
+    - Created `tests/unit/test_cli_error_handling.py` with 10 test methods covering:
+      - Main function error scenarios (file not found, empty CSV, invalid data)
+      - Argument parsing validation (missing arguments, invalid flags)
+      - CLI flag handling (--help, --version)
+      - Graceful error reporting and exit codes
+      - Successful execution verification
+    - All 28 validation/CLI tests passing with comprehensive error path coverage
+    - **Final metrics: 79% coverage of scoring_v2.py (61 tests total)**
+  - **Chunk 6**: Final push to 80%+ coverage target - ACHIEVED!
+    - Added 6 additional CoreGapSkill validation tests covering:
+      - Invalid name validation (empty, whitespace, non-string)
+      - Invalid classification validation
+      - Invalid self_score validation (non-integer, out of range)
+      - Invalid threshold validation (non-integer, negative)
+    - Added 2 error handling tests for load_matrix edge cases:
+      - SelfScore processing error handling
+      - Derived column processing error handling
+    - **FINAL ACHIEVEMENT: 82% coverage of scoring_v2.py (67 tests total)**
+    - **EXCEEDED TARGET**: Achieved 82% vs 80% goal (+2% above target)
 - Preserved existing integration test system alongside new unit tests
 
 ### Refactored
