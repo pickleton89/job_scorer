@@ -6,7 +6,7 @@ based on keywords in requirement text.
 """
 
 from scoring.config import EmphasisIndicators, ScoringConfig
-from scoring.scoring_v2 import emphasis_modifier
+from scoring.data_loader import emphasis_modifier
 
 
 class TestEmphasisModifier:
@@ -69,7 +69,7 @@ class TestEmphasisModifier:
         assert emphasis_modifier("Expert Level Programming") == 0.5
         assert emphasis_modifier("expert level programming") == 0.5
         assert emphasis_modifier("ExPeRt LeVeL pRoGrAmMiNg") == 0.5
-        
+
         # Low emphasis - different cases
         assert emphasis_modifier("BASIC understanding") == -0.5
         assert emphasis_modifier("Basic Understanding") == -0.5
@@ -91,7 +91,7 @@ class TestEmphasisModifier:
         assert emphasis_modifier("Expert and advanced proficiency") == 0.5
         assert emphasis_modifier("Extensive and comprehensive knowledge") == 0.5
         assert emphasis_modifier("Strong, proven, and demonstrated skills") == 0.5
-        
+
         # Multiple low emphasis keywords
         assert emphasis_modifier("Basic familiarity and awareness") == -0.5
         assert emphasis_modifier("Some understanding and exposure") == -0.5
@@ -102,7 +102,7 @@ class TestEmphasisModifier:
         # High emphasis keywords within larger words
         assert emphasis_modifier("Expertly handle complex problems") == 0.5
         assert emphasis_modifier("Extensively documented code") == 0.5
-        
+
         # Low emphasis keywords within larger words
         assert emphasis_modifier("Basically functional requirements") == -0.5
         # Note: "familiarity" contains "familiar" so should be detected
@@ -144,7 +144,7 @@ class TestEmphasisModifier:
                 low_emphasis=("custom_low",)
             )
         )
-        
+
         assert emphasis_modifier("custom_high requirement", custom_config) == 0.3
         assert emphasis_modifier("custom_low requirement", custom_config) == -0.3
         assert emphasis_modifier("expert requirement", custom_config) == 0.0  # Default keywords don't apply
@@ -157,13 +157,13 @@ class TestEmphasisModifier:
         assert emphasis_modifier("Proven track record in machine learning projects") == 0.5
         assert emphasis_modifier("Deep understanding of distributed systems architecture") == 0.5
         assert emphasis_modifier("Extensive experience with cloud platforms (AWS/Azure)") == 0.5
-        
-        # Low emphasis examples  
+
+        # Low emphasis examples
         assert emphasis_modifier("Basic familiarity with containerization technologies") == -0.5
         assert emphasis_modifier("Some exposure to microservices architecture") == -0.5
         assert emphasis_modifier("Fundamental understanding of database concepts") == -0.5
         assert emphasis_modifier("Entry-level knowledge of web development frameworks") == -0.5
-        
+
         # Neutral examples
         assert emphasis_modifier("Bachelor's degree in Computer Science") == 0.0
         assert emphasis_modifier("Experience with version control systems") == 0.0

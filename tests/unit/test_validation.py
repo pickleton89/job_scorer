@@ -9,13 +9,15 @@ Author: Job Scorer Testing Suite
 Created: 2025-05-23
 """
 
-import pandas as pd
-import pytest
+import os
 from pathlib import Path
 import tempfile
-import os
 from unittest.mock import patch
-from scoring.scoring_v2 import load_matrix
+
+import pandas as pd
+import pytest
+
+from scoring.data_loader import load_matrix
 
 
 class TestLoadMatrix:
@@ -305,7 +307,7 @@ Essential,Python programming,4"""
         
         try:
             # Mock emphasis_modifier to raise an exception
-            with patch('scoring.scoring_v2.emphasis_modifier') as mock_emphasis:
+            with patch('scoring.data_loader.emphasis_modifier') as mock_emphasis:
                 mock_emphasis.side_effect = Exception("Emphasis processing error")
                 
                 with pytest.raises(ValueError, match="Error processing derived columns:"):

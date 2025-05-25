@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Skill-Matrix Scoring Utility
 ===========================
@@ -38,23 +37,21 @@ import pandas as pd
 # Import configuration from the new config module
 try:
     from .config import (
-        SCORING_CONFIG,
-        UI_CONFIG,
-        CLASS_WT,
         CORE_GAP_THRESHOLDS,
         ClassificationConfig,
-        ScoringConfig
+        SCORING_CONFIG,
+        UI_CONFIG
     )
+    from .data_loader import load_matrix  # Data loading now modular
 except ImportError:
     # Fallback for direct script execution
     from config import (
-        SCORING_CONFIG,
-        UI_CONFIG,
-        CLASS_WT,
         CORE_GAP_THRESHOLDS,
         ClassificationConfig,
-        ScoringConfig
+        SCORING_CONFIG,
+        UI_CONFIG
     )
+    from data_loader import load_matrix
 
 if TYPE_CHECKING:
     from pandas import DataFrame
@@ -65,138 +62,17 @@ KT = TypeVar('KT')  # Key type
 VT = TypeVar('VT')  # Value type
 
 # ---------------------------------------------------------------------------
-# IO helpers
-# ---------------------------------------------------------------------------
-
-
-# --- Type Definitions ---
-
-# Type aliases for better readability
-ClassificationType: TypeAlias = str  # One of "Essential", "Important", "Desirable", "Implicit"
-
-def emphasis_modifier(text: str, config: ScoringConfig = SCORING_CONFIG) -> float:
-    """Determine the emphasis modifier for a given requirement text.
-    
-    Analyzes the text of a requirement to determine if it indicates a higher or lower
-    level of emphasis, which affects the scoring weight. This helps in identifying
-    how critical each requirement is to the role.
-    
-    Args:
-        text: The requirement text to analyze. Should be a string, but will handle
-              non-string inputs gracefully by treating them as standard emphasis.
-        config: Scoring configuration containing emphasis settings.
-    
-    Returns:
-        float: The emphasis modifier to apply to the score (config.emphasis_modifier_high for high,
-              config.emphasis_modifier_low for low, 0.0 for neutral).
-    """
-    if not isinstance(text, str):
-        return 0.0
-        
-    t = text.lower().strip()
-    
-    # Check for high emphasis indicators first
-    if any(keyword in t for keyword in config.emphasis_indicators.high_emphasis):
-        return config.emphasis_modifier_high
-        
-    # Then check for low emphasis indicators
-    if any(keyword in t for keyword in config.emphasis_indicators.low_emphasis):
-        return config.emphasis_modifier_low
-        
-    return 0.0  # No emphasis modifier
-
-def load_matrix(path: Path) -> pd.DataFrame:
-    """Load and validate the skill matrix CSV file.
-    
-    Loads a CSV file containing skill matrix data, validates its structure and content,
-    and returns a processed DataFrame with derived columns for scoring.
-    
-    Args:
-        path: Path to the CSV file containing skill matrix data.
-            Expected to have at minimum the columns: Classification, Requirement, and SelfScore.
-            
-    Returns:
-        pd.DataFrame: Processed DataFrame with the following columns:
-            - Original columns from the input CSV
-            - ClassWt: Numeric weight based on Classification
-            - EmphMod: Emphasis modifier (-0.5 to +0.5) based on requirement text
-            - Weight: Same as ClassWt (for backward compatibility)
-            - SelfScore: Validated and normalized to integer 0-5
-            
-    Raises:
-        FileNotFoundError: If the specified file does not exist.
-        PermissionError: If the file cannot be read due to permissions.
-        pd.errors.EmptyDataError: If the file is empty.
-        ValueError: If required columns are missing, data is malformed, or contains
-                   invalid values that cannot be processed.
-    """
-    # Define required columns and their expected data types
-    required_columns = {"Classification", "Requirement", "SelfScore"}
-    valid_classifications = set(CLASS_WT.keys())
-    
-    # 1. Validate input path
-    if not isinstance(path, (str, Path)):
-        raise TypeError(f"Expected str or Path, got {type(path).__name__}")
-    
-    path = Path(path)
-    if not path.exists():
-        raise FileNotFoundError(f"File not found: {path}")
-    if not path.is_file():
-        raise ValueError(f"Path is not a file: {path}")
-    
-    # 2. Read the CSV file with error handling
-    try:
-        df = pd.read_csv(path)
-    except pd.errors.EmptyDataError:
-        raise pd.errors.EmptyDataError("The CSV file is empty")
-    except UnicodeDecodeError as e:
-        raise ValueError(f"Unable to decode CSV file. Ensure it's a valid CSV file. Error: {e}")
-    except Exception as e:
-        raise ValueError(f"Error reading CSV file: {e}")
-    
-    # 3. Validate required columns
-    missing_columns = required_columns - set(df.columns)
-    if missing_columns:
-        raise ValueError(
-            f"CSV is missing required columns: {', '.join(sorted(missing_columns))}. "
-            f"Required columns are: {', '.join(sorted(required_columns))}"
-        )
-    
-    # 4. Validate Classification values
-    invalid_classifications = set(df["Classification"]) - valid_classifications
-    if invalid_classifications:
-        raise ValueError(
-            f"Invalid Classification values found: {', '.join(sorted(invalid_classifications))}. "
-            f"Valid values are: {', '.join(sorted(valid_classifications))}"
-        )
-    
-    # 5. Process and validate SelfScore
-    try:
-        # Convert to numeric, coerce non-numeric to NaN, then fill with 0
-        df["SelfScore"] = (
-            pd.to_numeric(df["SelfScore"], errors="coerce")
-            .fillna(0)
-            .clip(0, SCORING_CONFIG.max_self_score)
-            .astype(int)
-        )
-    except Exception as e:
-        raise ValueError(f"Error processing SelfScore values: {e}")
-    
-    # 6. Add derived columns
-    try:
-        df["ClassWt"] = df["Classification"].map(CLASS_WT).fillna(0)
-        df["EmphMod"] = df["Requirement"].apply(emphasis_modifier)
-        df["Weight"] = df["ClassWt"]  # For backward compatibility
-    except Exception as e:
-        raise ValueError(f"Error processing derived columns: {e}")
-    
-    return df
-
+# Data loading and validation is now located in scoring.data_loader
+# (imported below for modularity and testability)
 
 # ---------------------------------------------------------------------------
 # Scoring logic
 # ---------------------------------------------------------------------------
 
+# --- Type Definitions ---
+
+# Type aliases for better readability
+ClassificationType: TypeAlias = str  # One of "Essential", "Important", "Desirable", "Implicit"
 
 @dataclass
 class CoreGapSkill:

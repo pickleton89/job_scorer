@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Step 1 of modular refactor complete: `load_matrix` moved from `scoring_v2.py` to new `scoring/data_loader.py` module. All imports and tests updated. File organization improved for maintainability.
+
 ### Added
 - Modern Python 3.13 type hint syntax throughout the codebase
 - `ScoreResult` TypedDict for better type safety in score calculations
