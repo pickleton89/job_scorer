@@ -5,7 +5,8 @@ Tests the emphasis detection logic that determines scoring modifiers
 based on keywords in requirement text.
 """
 
-from scoring.scoring_v2 import emphasis_modifier, ScoringConfig, EmphasisIndicators
+from scoring.config import EmphasisIndicators, ScoringConfig
+from scoring.scoring_v2 import emphasis_modifier
 
 
 class TestEmphasisModifier:

@@ -29,11 +29,32 @@ from __future__ import annotations
 
 import argparse
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar, TypeAlias, TypeVar, TypedDict, NamedTuple
+from typing import TYPE_CHECKING, TypeAlias, TypeVar, TypedDict
 
 import pandas as pd
+
+# Import configuration from the new config module
+try:
+    from .config import (
+        SCORING_CONFIG,
+        UI_CONFIG,
+        CLASS_WT,
+        CORE_GAP_THRESHOLDS,
+        ClassificationConfig,
+        ScoringConfig
+    )
+except ImportError:
+    # Fallback for direct script execution
+    from config import (
+        SCORING_CONFIG,
+        UI_CONFIG,
+        CLASS_WT,
+        CORE_GAP_THRESHOLDS,
+        ClassificationConfig,
+        ScoringConfig
+    )
 
 if TYPE_CHECKING:
     from pandas import DataFrame
@@ -52,120 +73,6 @@ VT = TypeVar('VT')  # Value type
 
 # Type aliases for better readability
 ClassificationType: TypeAlias = str  # One of "Essential", "Important", "Desirable", "Implicit"
-
-class EmphasisIndicators(NamedTuple):
-    """Container for emphasis indicator keywords."""
-    high_emphasis: tuple[str, ...] = (
-        "expert", "extensive", "strong", "proven", "deep", "comprehensive",
-        "advanced", "thorough", "significant", "considerable", "demonstrated",
-        "extensively", "expertise", "mastery", "proficiency", "fluent"
-    )
-    low_emphasis: tuple[str, ...] = (
-        "basic", "familiarity", "familiar", "awareness", "aware", "some",
-        "knowledge of", "understanding of", "exposure to", "introduction",
-        "fundamental", "beginner", "novice", "entry-level", "basic understanding"
-    )
-
-
-@dataclass(frozen=True)
-class UIConfig:
-    """Configuration for UI-related constants.
-    
-    Attributes:
-        separator_length: Length of separator lines in console output
-        default_indent: Default indentation for nested output
-        max_line_width: Maximum line width for console output
-    """
-    separator_length: int = 50
-    default_indent: int = 2
-    max_line_width: int = 80
-
-
-@dataclass(frozen=True)
-class ScoringConfig:
-    """Configuration for the scoring system.
-    
-    Attributes:
-        max_self_score: Maximum possible self-assessment score (0-5 scale).
-        bonus_cap_percentage: Maximum bonus points as a percentage of core points.
-        emphasis_modifier_high: Modifier for high-emphasis requirements.
-        emphasis_modifier_low: Modifier for low-emphasis requirements.
-        emphasis_indicators: Keywords for detecting emphasis in requirement text.
-        ui: UI-related configuration
-    """
-    max_self_score: int = 5
-    bonus_cap_percentage: float = 0.25
-    emphasis_modifier_high: float = 0.5
-    emphasis_modifier_low: float = -0.5
-    emphasis_indicators: EmphasisIndicators = field(default_factory=EmphasisIndicators)
-    ui: UIConfig = field(default_factory=UIConfig)
-    
-    @property
-    def theoretical_max_raw_score_per_row(self) -> float:
-        """Calculate the theoretical maximum raw score per row."""
-        return (
-            ClassificationConfig.ESSENTIAL.weight * 
-            (1 + self.emphasis_modifier_high) * 
-            self.max_self_score  # 3 * 1.5 * 5 = 22.5
-        )
-
-
-@dataclass(frozen=True)
-class ClassificationConfig:
-    """Configuration for skill classifications."""
-    name: str
-    weight: float
-    gap_threshold: int = 0  # Default: no gap detection
-    
-    # Class-level instances for each classification type
-    ESSENTIAL: ClassVar[ClassificationConfig]
-    IMPORTANT: ClassVar[ClassificationConfig]
-    DESIRABLE: ClassVar[ClassificationConfig]
-    IMPLICIT: ClassVar[ClassificationConfig]
-    
-    @classmethod
-    def get_all(cls) -> list[ClassificationConfig]:
-        """Get all classification configurations."""
-        return [cls.ESSENTIAL, cls.IMPORTANT, cls.DESIRABLE, cls.IMPLICIT]
-    
-    @classmethod
-    def get_weights_dict(cls) -> dict[str, float]:
-        """Get classification weights as a dictionary."""
-        return {c.name: c.weight for c in cls.get_all()}
-    
-    @classmethod
-    def get_gap_thresholds(cls) -> dict[str, int]:
-        """Get core gap thresholds as a dictionary."""
-        return {c.name: c.gap_threshold for c in cls.get_all()}
-
-
-# Initialize classification configurations
-ClassificationConfig.ESSENTIAL = ClassificationConfig(
-    name="Essential", 
-    weight=3.0, 
-    gap_threshold=2  # Score <= 2 is a gap
-)
-ClassificationConfig.IMPORTANT = ClassificationConfig(
-    name="Important", 
-    weight=2.0, 
-    gap_threshold=1  # Score <= 1 is a gap
-)
-ClassificationConfig.DESIRABLE = ClassificationConfig(
-    name="Desirable", 
-    weight=1.0, 
-    gap_threshold=0  # No gaps
-)
-ClassificationConfig.IMPLICIT = ClassificationConfig(
-    name="Implicit", 
-    weight=0.5, 
-    gap_threshold=0  # No gaps
-)
-
-# Global configuration instances
-SCORING_CONFIG = ScoringConfig()
-UI_CONFIG = SCORING_CONFIG.ui
-CLASS_WT = ClassificationConfig.get_weights_dict()
-CORE_GAP_THRESHOLDS = ClassificationConfig.get_gap_thresholds()
 
 def emphasis_modifier(text: str, config: ScoringConfig = SCORING_CONFIG) -> float:
     """Determine the emphasis modifier for a given requirement text.
@@ -206,7 +113,7 @@ def load_matrix(path: Path) -> pd.DataFrame:
     
     Args:
         path: Path to the CSV file containing skill matrix data.
-            Expected to have at least the columns: Classification, Requirement, and SelfScore.
+            Expected to have at minimum the columns: Classification, Requirement, and SelfScore.
             
     Returns:
         pd.DataFrame: Processed DataFrame with the following columns:
@@ -309,32 +216,6 @@ class CoreGapSkill:
     classification: ClassificationType
     self_score: int
     threshold: int
-    """Represents a skill that has a core gap (below threshold score).
-    
-    This class encapsulates information about a skill that has been identified as having
-    a core gap, meaning the self-assessed score is below the minimum threshold for its
-    classification. It provides methods to determine the severity of the gap.
-    
-    Attributes:
-        name: The name or description of the skill/requirement.
-        classification: The classification of the skill (e.g., 'Essential', 'Important').
-        self_score: The self-assessed score (0-5) for this skill.
-        threshold: The minimum acceptable score for this skill's classification.
-    
-    Example:
-        >>> gap = CoreGapSkill(
-        ...     name="Python programming",
-        ...     classification="Essential",
-        ...     self_score=2,
-        ...     threshold=3
-        ... )
-        >>> gap.severity
-        'Medium'
-    """
-    name: str
-    classification: str
-    self_score: int
-    threshold: int
     
     def __post_init__(self) -> None:
         """Validate the input values after initialization."""
@@ -403,8 +284,8 @@ def compute_scores(df: DataFrame) -> ScoreResult:
     
     Core Gap Detection:
         A core gap is identified when:
-        - Essential items with SelfScore <= 2
-        - Important items with SelfScore <= 1
+        - Essential items with SelfScore ≤ 2
+        - Important items with SelfScore ≤ 1
         - Thresholds are configurable via CORE_GAP_THRESHOLDS
     
     Args:
@@ -529,7 +410,7 @@ def parse_args() -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Example:\n"
-            "  python scoring_v2.py my_skills.csv\n\n"
+            "  python job-skill-matrix-scoring.py skills.csv\n\n"
             "For best results, ensure your CSV follows the required format:\n"
             "  - One requirement per row\n"
             "  - Use valid Classification values\n"

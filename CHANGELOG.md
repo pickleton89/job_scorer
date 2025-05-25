@@ -106,6 +106,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed `EmphasisIndicators` attribute access in `emphasis_modifier` function
 - Resolved test failures related to emphasis detection
 - Ensured proper handling of edge cases in score calculations
+- Fixed import issue in `scoring_v2.py` to support both module import and direct script execution
+- Added try/except fallback for imports to handle relative vs absolute import scenarios
 
 ### Refactored
 - Simplified imports by removing unused standard library imports
