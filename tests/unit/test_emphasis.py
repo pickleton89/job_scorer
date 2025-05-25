@@ -6,7 +6,7 @@ based on keywords in requirement text.
 """
 
 from scoring.config import EmphasisIndicators, ScoringConfig
-from scoring.data_loader import emphasis_modifier
+from scoring.scoring_engine import emphasis_modifier
 
 
 class TestEmphasisModifier:

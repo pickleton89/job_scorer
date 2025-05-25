@@ -66,13 +66,9 @@ VT = TypeVar('VT')  # Value type
 # (imported below for modularity and testability)
 
 # ---------------------------------------------------------------------------
-# Scoring logic
+# Scoring logic is now located in scoring_engine.py (modularized)
 # ---------------------------------------------------------------------------
-
-# --- Type Definitions ---
-
-# Type aliases for better readability
-ClassificationType: TypeAlias = str  # One of "Essential", "Important", "Desirable", "Implicit"
+from .scoring_engine import emphasis_modifier, CoreGapSkill, compute_scores
 
 @dataclass
 class CoreGapSkill:

@@ -10,8 +10,7 @@ Tests the compute_scores() function which handles:
 
 import pandas as pd
 import pytest
-from scoring.scoring_v2 import compute_scores
-
+from scoring.scoring_engine import compute_scores, CoreGapSkill
 
 class TestComputeScores:
     """Test cases for the compute_scores function."""

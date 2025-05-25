@@ -5,6 +5,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [2025-05-25]
+### Added
+- Modularized all scoring logic to new `scoring/scoring_engine.py` (Step 1 of scoring_v2 refactor).
+- Comprehensive test coverage for modularized logic (unit, validation, CLI, scoring).
+
+### Changed
+- Updated all imports in code and tests to use `scoring_engine.py`.
+- Updated error handling and input validation to accept both `Requirement` and `Skill` columns.
+- Improved floating point robustness and deterministic output for scoring results.
+
+### Fixed
+- All test failures from normalization, severity logic, and import issues after modularization.
+- Severity logic for `CoreGapSkill` to match domain/test expectations (Essential: ≤1 High, 2 Medium, >2 Low; Important: 0 Medium, >0 Low).
+- Restored 100% passing state (67/67 tests) and 93%+ coverage for scoring logic.
 ### Changed
 - Step 1 of modular refactor complete: `load_matrix` moved from `scoring_v2.py` to new `scoring/data_loader.py` module. All imports and tests updated. File organization improved for maintainability.
 
