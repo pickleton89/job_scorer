@@ -1,226 +1,199 @@
-# -*- coding: utf-8 -*-
 """
-Skill-Matrix Scoring Utility
-===========================
-Reads a CSV exported from your scorecard (must include at minimum the columns
-`Requirement/Skill`, `Weight`, and `SelfScore`) and returns:
+Command Line Interface Module
+============================
 
-• A per-row **core-gap** flag (Weight == 3 AND SelfScore ≤ 1)
-• A bonus-weight cap (default = 25 % of core weight *or* a fixed max-row cap)
-• The effective denominator, max points, actual points and %-fit
-• A human-readable verdict tier
+This module contains the CLI interface and UI output logic for the job_scorer project:
+- parse_args: Command line argument parsing
+- main: Main application logic and user interface output
 
-Bug-fix 2025-05-20
-------------------
-Earlier logic could mis-count bonus rows if the bonus cap was already hit *before*
-the last Weight-1 row in sequence. The updated `apply_bonus_cap` now slices the
-Weight-1 subset deterministically, keeping only the first **N** rows that fit
-within the cap and zeroing out the rest — avoiding off-by-one edge cases.
-
-Usage
------
-```bash
-python job-skill-matrix-scoring.py skills.csv               # default 25 % bonus cap
-python job-skill-matrix-scoring.py skills.csv --cap 0.30     # % cap override
-python job-skill-matrix-scoring.py skills.csv --cap 5        # row-limit mode (max 5 W1 rows)
-```
-The script is dependency-light (pandas only).
+All CLI-related logic is isolated here for maintainability and testability.
 """
 
 from __future__ import annotations
 
 import argparse
-import math
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pandas as pd
 
-# ---------------------------------------------------------------------------
-# IO helpers
-# ---------------------------------------------------------------------------
+# Local imports
+from .config import CORE_GAP_THRESHOLDS, UI_CONFIG
+from .data_loader import load_matrix
+from .scoring_engine import compute_scores
+
+if TYPE_CHECKING:
+    pass
 
 
-def load_matrix(path: Path) -> pd.DataFrame:
-    """Load CSV and coerce numeric columns."""
-    df = pd.read_csv(path)
-    required_cols = {"Weight", "SelfScore"}
-    if not required_cols.issubset(df.columns):
-        missing = ", ".join(required_cols - set(df.columns))
-        raise ValueError(f"CSV missing required columns: {missing}")
+def parse_args() -> argparse.Namespace:
+    """Parse command line arguments.
 
-    df["Weight"] = pd.to_numeric(df["Weight"], errors="coerce").fillna(0).astype(int)
-    df["SelfScore"] = (
-        pd.to_numeric(df["SelfScore"], errors="coerce").fillna(0).astype(int)
-    )
-    return df
+    Returns:
+        Parsed command line arguments.
 
-
-# ---------------------------------------------------------------------------
-# Scoring logic
-# ---------------------------------------------------------------------------
-
-
-def apply_bonus_cap(
-    df_in: pd.DataFrame,
-    cap_pct: float | None = 0.25,
-    cap_rows: int | None = None,
-) -> tuple[pd.DataFrame, int]:
-    """Return (**new DF**, **effective_total_weight**).
-
-    • **Row-limit mode**   (`cap_rows` is int) – keep at most *cap_rows* Weight-1 rows.
-    • **Percent mode**    (`cap_pct` float ≤ 1) – bonus weight ≤ core_weight × cap_pct.
-
-    Weight-1 rows beyond the cap have their Weight set to **0** (they remain visible
-    for the user, but they don't influence the math).
+    Raises:
+        SystemExit: If there's an error parsing the arguments.
     """
-    df = df_in.copy()
+    parser = argparse.ArgumentParser(
+        description=(
+            "Score your job application fit against a skill matrix.\n\n"
+            "The tool analyzes your self-assessed skills against job requirements\n"
+            "and provides a detailed report with recommendations."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Example:\n"
+            "  python job-skill-matrix-scoring.py skills.csv\n\n"
+            "For best results, ensure your CSV follows the required format:\n"
+            "  - One requirement per row\n"
+            "  - Use valid Classification values\n"
+            "  - SelfScore should be an integer 0-5"
+        ),
+    )
 
-    core_mask = df["Weight"] >= 2
-    core_weight = df.loc[core_mask, "Weight"].sum()
+    parser.add_argument("csv", type=Path, help="Path to CSV file containing skill matrix data")
 
-    # ------------------ row-limit cap ------------------
-    if cap_rows is not None:
-        bonus_idx = df.index[df["Weight"] == 1]
-        # zero-out everything after the first `cap_rows` Weight-1 rows
-        if len(bonus_idx) > cap_rows:
-            drop_idx = bonus_idx[cap_rows:]
-            df.loc[drop_idx, "Weight"] = 0
-        effective_total_weight = core_weight + min(len(bonus_idx), cap_rows)
-        return df, effective_total_weight
+    parser.add_argument(
+        "--version",
+        action="version",
+        version="%(prog)s 2.0.0",
+        help="Show program's version number and exit",
+    )
 
-    # ------------------ percentage cap ----------------
-    # Use math.ceil to guarantee at least one bonus row when cap_pct > 0 and core_weight > 0
-    allowed_bonus_weight = int(math.ceil(core_weight * (cap_pct or 0))) if core_weight > 0 and cap_pct > 0 else 0
-    bonus_idx = df.index[df["Weight"] == 1]
-
-    # If total bonus ≤ allowed, nothing to trim
-    if len(bonus_idx) <= allowed_bonus_weight:
-        effective_total_weight = core_weight + len(bonus_idx)
-        return df, effective_total_weight
-
-    # otherwise trim: keep only the first N rows where N = allowed_bonus_weight
-    drop_idx = bonus_idx[allowed_bonus_weight:]
-    df.loc[drop_idx, "Weight"] = 0
-    effective_total_weight = core_weight + allowed_bonus_weight
-    return df, effective_total_weight
-
-
-def compute_scores(df: pd.DataFrame, effective_total_weight: int) -> dict:
-    """Compute core-gap flag, points and %-fit."""
-    # Identify core gap skills (Weight == 3 and SelfScore <= 1)
-    core_gap_mask = (df["Weight"] == 3) & (df["SelfScore"] <= 1)
-    core_gap = core_gap_mask.any()
-    
-    # Get the list of core gap skills if any exist
-    core_gap_skills = []
-    if core_gap:
-        # Get the requirement/skill name for each core gap
-        req_col = [col for col in df.columns if "requirement" in col.lower() or "skill" in col.lower()][0]
-        core_gap_skills = df.loc[core_gap_mask, req_col].tolist()
-    
-    df["WeightedScore"] = df["Weight"] * df["SelfScore"]
-
-    actual_points = int(df["WeightedScore"].sum())
-    max_points = effective_total_weight * 2  # max self-score = 2
-    pct_fit = actual_points / max_points if max_points else 0.0
-
-    return {
-        "core_gap": core_gap,
-        "core_gap_skills": core_gap_skills,
-        "actual_points": actual_points,
-        "max_points": max_points,
-        "pct_fit": pct_fit,
-    }
-
-
-# ---------------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------------
+    try:
+        return parser.parse_args()
+    except Exception as e:
+        print(f"Error parsing arguments: {e}", file=sys.stderr)
+        parser.print_help()
+        sys.exit(1)
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Compute fit score from a skill-matrix CSV."
-    )
-    parser.add_argument(
-        "csv", type=Path, help="Path to CSV with Weight & SelfScore columns"
-    )
-    parser.add_argument(
-        "--cap",
-        type=float,
-        default=0.25,
-        help="Bonus cap: ≤1 → percent mode; >1 → row-limit mode (int)",
-    )
-    args = parser.parse_args()
+    """Main entry point for the job skill matrix scoring tool.
 
-    df_raw = load_matrix(args.csv)
+    This function:
+    1. Parses command line arguments
+    2. Loads and validates the skill matrix CSV
+    3. Computes scores and identifies core gaps
+    4. Generates a detailed report with recommendations
 
-    # Determine cap mode
-    cap_rows = int(args.cap) if args.cap > 1 else None
-    cap_pct = None if args.cap > 1 else args.cap
+    Returns:
+        None: Outputs results to stdout and exits with appropriate status code
 
-    df_eff, eff_weight = apply_bonus_cap(df_raw, cap_pct, cap_rows)
-    metrics = compute_scores(df_eff, eff_weight)
+    Raises:
+        FileNotFoundError: If the specified CSV file doesn't exist
+        PermissionError: If the file cannot be read due to permissions
+        ValueError: If the CSV is malformed or contains invalid data
+        SystemExit: With status code 1 if an error occurs during processing
+    """
+    # Parse command line arguments
+    args = parse_args()
+
+    # Load and validate the skill matrix
+    try:
+        if not args.csv.exists():
+            raise FileNotFoundError(f"File not found: {args.csv}")
+
+        df_raw = load_matrix(args.csv)
+
+        # Basic validation of the loaded data
+        if df_raw.empty:
+            raise ValueError("The CSV file is empty or contains no valid data")
+
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        print(
+            "\nPlease ensure the CSV file exists and follows the required format.", file=sys.stderr
+        )
+        print("Use --help for more information.", file=sys.stderr)
+        sys.exit(1)
+
+    # Process the matrix and calculate metrics
+    try:
+        metrics = compute_scores(df_raw)
+    except Exception as e:
+        print(f"Error calculating scores: {e}", file=sys.stderr)
+        print(
+            "\nError: The skill matrix data appears to be invalid. Please check your input.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
     # ----- Report -----
     pd.set_option("display.max_rows", None)
-    print("\nProcessed Matrix (after cap):")
-    print(
-        df_eff[[c for c in df_eff.columns if c != "WeightedScore"] + ["WeightedScore"]]
-    )
+    # Display the processed matrix with scores
+    print(df_raw[[c for c in df_raw.columns if c != "RowScoreRaw"] + ["RowScoreRaw"]])
 
-    print("\n" + "="*50)
-    print("SCORECARD SUMMARY")
-    print("="*50)
-    
-    # Core gap assessment
+    separator = "-" * UI_CONFIG.separator_length
+    print(f"\n{separator}")
+    print("VERDICT".center(UI_CONFIG.separator_length))
+    print(separator)
+
+    # Core gap status
     core_gap_status = "YES" if metrics["core_gap"] else "NO"
     print(f"\n1. Core gap present : {core_gap_status}")
+
     if metrics["core_gap"]:
-        print("   ⚠️  At least one must-have skill (Weight 3) was self-scored 0 or 1.")
-        print("   ⚠️  Treat as a red flag — address the gap before applying.")
+        # Report on each classification with gaps
+        essential_gaps = [g for g in metrics["core_gap_skills"] if g.classification == "Essential"]
+        important_gaps = [g for g in metrics["core_gap_skills"] if g.classification == "Important"]
+
+        if essential_gaps:
+            print(
+                f"   {len(essential_gaps)} Essential skill(s) scored ≤ {CORE_GAP_THRESHOLDS['Essential']}."
+            )
+        if important_gaps:
+            print(
+                f"   {len(important_gaps)} Important skill(s) scored ≤ {CORE_GAP_THRESHOLDS['Important']}."
+            )
+
+        print("   Treat as a red flag — address these gaps before applying.")
     else:
-        print("   ✓  All Weight 3 items are self-scored 2. You clear the 'minimum bar'.")
-    
+        print("   All essential and important skills meet the minimum score requirements.")
+
     # Points calculation
     print(f"\n2. Actual points    : {metrics['actual_points']} / {metrics['max_points']}")
     print(f"   • Your weighted evidence of fit: {metrics['actual_points']} points")
     print(f"   • Maximum possible score: {metrics['max_points']} points")
-    
+
     # Percentage fit
     pct = metrics["pct_fit"]
     print(f"\n3. % Fit            : {pct:.1%}")
-    
+
     # Add disclaimer about % Fit when core gaps are present
     if metrics["core_gap"]:
-        print("   ⚠️  DISCLAIMER: % Fit is misleading when core gaps are present.")
-        print("   ⚠️  Address core gaps first before considering the % Fit value.")
-    
+        print("   DISCLAIMER: % Fit is misleading when core gaps are present.")
+        print("   Address core gaps first before considering the % Fit value.")
+
     fit_guidance = (
-        "   ✓  Excellent overall fit → Apply immediately, emphasize strengths"
-        if pct >= 0.80 else
-        "   ✓  Good fit; minor gaps → Apply; line up examples or quick up-skilling"
-        if pct >= 0.65 else
-        "   ⚠️  Possible fit; several gaps → Decide whether to apply now or build skills first"
-        if pct >= 0.50 else
-        "   ⚠️  Significant gaps → Up-skill before investing in an application"
+        "   Excellent overall fit → Apply immediately, emphasize strengths"
+        if pct >= 0.80
+        else "   Good fit; minor gaps → Apply; line up examples or quick up-skilling"
+        if pct >= 0.65
+        else "   Possible fit; several gaps → Decide whether to apply now or build skills first"
+        if pct >= 0.50
+        else "   Significant gaps → Up-skill before investing in an application"
     )
     print(fit_guidance)
-    
+
     # Verdict
     if metrics["core_gap"]:
         # Core gap present = YES
         verdict = "Critical gap — address before applying."
         print(f"\n4. Verdict          : {verdict}")
         print("   Note: Core gap overrides the %-Fit tier.")
-        
+
         # Print the core gap skills
-        print("\n5. Core Gap Skills (Weight=3, SelfScore≤1):")
-        for skill in metrics["core_gap_skills"]:
-            print(f"   • {skill}")
+        print("\n5. Core Gap Skills:")
+        for gap in metrics["core_gap_skills"]:
+            print(
+                f'   • "{gap.name}" (Classification: {gap.classification}, SelfScore: {gap.self_score})'
+            )
+
         print("\n   Use as a to-do list: supply stronger evidence or up-skill")
-        print("   until you can honestly self-score 2 on these items.")
+        print("   until you can honestly self-score above the threshold for these items.")
     else:
         # No core gap present, verdict based on % Fit
         pct = metrics["pct_fit"]
@@ -236,17 +209,21 @@ def main() -> None:
         else:
             # No core gap and Fit < 50 %
             verdict = "Significant gaps — consider learning first"
-        
+
         print(f"\n4. Verdict          : {verdict}")
-    
+
     # Add next steps guidance
-    print("\n" + "-"*50)
-    print("RECOMMENDED NEXT STEPS")
-    print("-"*50)
-    
+    print(f"\n{separator}")
+    print("RECOMMENDED NEXT STEPS".center(UI_CONFIG.separator_length))
+    print(separator)
+
     if metrics["core_gap"]:
-        print("1. Focus on closing the core gap skills listed above.")
+        print("1. Focus on closing the high and medium severity gaps first.")
         print("2. Re-evaluate after addressing these critical skills.")
+        print("3. For each gap, consider:")
+        print("   - Can you find stronger evidence from your experience?")
+        print("   - What specific training or practice would improve your score?")
+        print("   - Are there alternative skills you could highlight to compensate?")
     else:
         if pct >= 0.80:
             print("1. Apply immediately - you're an excellent match!")
@@ -260,16 +237,7 @@ def main() -> None:
         else:
             print("1. Focus on skill development before applying.")
             print("2. Target the Weight 3 and Weight 2 items with low self-scores.")
-    
+
     # Add reminder about self-scoring
     print("\nReminder: Use concrete metrics (projects, KPIs) to justify your self-scores.")
     print("Run this tool again after improving skills or gathering better evidence.")
-
-
-
-if __name__ == "__main__":
-    try:
-        main()
-    except Exception as exc:
-        print(f"Error: {exc}", file=sys.stderr)
-        sys.exit(1)

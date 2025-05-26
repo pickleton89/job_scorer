@@ -391,7 +391,7 @@ Important,SQL databases,0"""
             temp_path = f.name
         
         try:
-            from scoring.scoring_v2 import compute_scores
+            from scoring.scoring_engine import compute_scores
             
             df = load_matrix(Path(temp_path))
             result = compute_scores(df)

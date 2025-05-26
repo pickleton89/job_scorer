@@ -40,10 +40,38 @@ def emphasis_modifier(text: str, config: ScoringConfig = SCORING_CONFIG) -> floa
 # --- Core Gap Skill Dataclass ---
 @dataclass(frozen=True, order=True)
 class CoreGapSkill:
+    """Represents a skill that has a core gap between requirement and self-assessment.
+    
+    Attributes:
+        name: The name of the skill (must be non-empty string)
+        classification: The classification of the skill (Essential/Important/Desirable/Implicit)
+        self_score: The self-assessed score (0-5)
+        threshold: The minimum required score (non-negative integer)
+    """
     name: str
     classification: str
     self_score: int
     threshold: int
+
+    def __post_init__(self) -> None:
+        """Validate the CoreGapSkill attributes after initialization."""
+        # Validate name
+        if not isinstance(self.name, str) or not self.name.strip():
+            raise ValueError("Skill name must be a non-empty string")
+            
+        # Validate classification
+        valid_classifications = ["Essential", "Important", "Desirable", "Implicit"]
+        if self.classification not in valid_classifications:
+            raise ValueError(f"Invalid classification: {self.classification}. "
+                           f"Must be one of: {', '.join(valid_classifications)}")
+                           
+        # Validate self_score
+        if not isinstance(self.self_score, int) or not (0 <= self.self_score <= 5):
+            raise ValueError("Self score must be an integer between 0 and 5")
+            
+        # Validate threshold
+        if not isinstance(self.threshold, int) or self.threshold < 0:
+            raise ValueError("Threshold must be a non-negative integer")
 
     @property
     def severity(self) -> str:

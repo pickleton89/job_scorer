@@ -6,6 +6,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2025-05-26]
+### Added
+- New modular package structure with `__init__.py` for proper package initialization
+- Input validation for `CoreGapSkill` class to ensure data integrity
+- Comprehensive documentation for the public API
+
+### Changed
+- Refactored codebase into modular components:
+  - `scoring_v2.py`: Lightweight entry point
+  - `cli.py`: Command-line interface and user interaction
+  - `data_loader.py`: Loading and validation of skill matrices
+  - `scoring_engine.py`: Core scoring logic and data structures
+  - `config.py`: Configuration and constants
+- Updated all test imports to use the new module structure
+- Improved code organization and maintainability
+
+### Fixed
+- All 67 unit tests passing with the new modular structure
+- Proper handling of relative and absolute imports
+- Consistent error handling across modules
+
 ## [2025-05-25]
 ### Added
 - Modularized all scoring logic to new `scoring/scoring_engine.py` (Step 1 of scoring_v2 refactor).

@@ -319,7 +319,7 @@ class TestComputeScores:
 
     def test_core_gap_skill_validation_invalid_name(self):
         """Test CoreGapSkill validation with invalid name."""
-        from scoring.scoring_v2 import CoreGapSkill
+        from scoring.scoring_engine import CoreGapSkill
         
         # Empty string name should raise ValueError
         with pytest.raises(ValueError, match="Skill name must be a non-empty string"):
@@ -335,7 +335,7 @@ class TestComputeScores:
 
     def test_core_gap_skill_validation_invalid_classification(self):
         """Test CoreGapSkill validation with invalid classification."""
-        from scoring.scoring_v2 import CoreGapSkill
+        from scoring.scoring_engine import CoreGapSkill
         
         # Invalid classification should raise ValueError
         with pytest.raises(ValueError, match="Invalid classification: InvalidType"):
@@ -343,7 +343,7 @@ class TestComputeScores:
 
     def test_core_gap_skill_validation_invalid_self_score(self):
         """Test CoreGapSkill validation with invalid self_score."""
-        from scoring.scoring_v2 import CoreGapSkill
+        from scoring.scoring_engine import CoreGapSkill
         
         # Non-integer self_score should raise ValueError
         with pytest.raises(ValueError, match="Self score must be an integer between 0 and 5"):
@@ -359,7 +359,7 @@ class TestComputeScores:
 
     def test_core_gap_skill_validation_invalid_threshold(self):
         """Test CoreGapSkill validation with invalid threshold."""
-        from scoring.scoring_v2 import CoreGapSkill
+        from scoring.scoring_engine import CoreGapSkill
         
         # Non-integer threshold should raise ValueError
         with pytest.raises(ValueError, match="Threshold must be a non-negative integer"):

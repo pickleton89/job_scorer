@@ -20,7 +20,7 @@ class TestMainFunctionErrorHandling:
     
     def test_file_not_found_handling(self):
         """Test main function handling of non-existent files."""
-        from scoring.scoring_v2 import main
+        from scoring.cli import main
         
         # Mock sys.argv to simulate command line arguments
         test_args = ['scoring_v2.py', '/non/existent/file.csv']
@@ -40,7 +40,7 @@ class TestMainFunctionErrorHandling:
     
     def test_empty_csv_handling(self):
         """Test main function handling of empty CSV files."""
-        from scoring.scoring_v2 import main
+        from scoring.cli import main
         
         # Create an empty CSV file
         with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
@@ -66,7 +66,7 @@ class TestMainFunctionErrorHandling:
     
     def test_invalid_csv_data_handling(self):
         """Test main function handling of invalid CSV data."""
-        from scoring.scoring_v2 import main
+        from scoring.cli import main
         
         # Create a CSV with missing required columns
         csv_content = """WrongColumn,AnotherWrongColumn
@@ -97,7 +97,7 @@ value1,value2"""
     
     def test_scoring_calculation_error_handling(self):
         """Test main function handling of scoring calculation errors."""
-        from scoring.scoring_v2 import main
+        from scoring.cli import main
         
         # Create a valid CSV file
         csv_content = """Classification,Requirement,SelfScore
@@ -111,7 +111,7 @@ Essential,Python programming,4"""
             test_args = ['scoring_v2.py', temp_path]
             
             # Mock compute_scores to raise an exception
-            with patch('scoring.scoring_v2.compute_scores') as mock_compute:
+            with patch('scoring.cli.compute_scores') as mock_compute:
                 mock_compute.side_effect = Exception("Simulated scoring error")
                 
                 with patch('sys.argv', test_args):
@@ -132,7 +132,7 @@ Essential,Python programming,4"""
     
     def test_successful_execution_no_errors(self):
         """Test main function successful execution without errors."""
-        from scoring.scoring_v2 import main
+        from scoring.cli import main
         
         # Create a valid CSV file
         csv_content = """Classification,Requirement,SelfScore
@@ -168,7 +168,7 @@ Desirable,Docker containers,2"""
     
     def test_help_flag_handling(self):
         """Test main function handling of --help flag."""
-        from scoring.scoring_v2 import main
+        from scoring.cli import main
         
         test_args = ['scoring_v2.py', '--help']
         
@@ -186,7 +186,7 @@ Desirable,Docker containers,2"""
     
     def test_version_flag_handling(self):
         """Test main function handling of --version flag."""
-        from scoring.scoring_v2 import main
+        from scoring.cli import main
         
         test_args = ['scoring_v2.py', '--version']
         
@@ -204,7 +204,7 @@ Desirable,Docker containers,2"""
     
     def test_keyboard_interrupt_handling(self):
         """Test main function handling of keyboard interrupt (Ctrl+C)."""
-        from scoring.scoring_v2 import main
+        from scoring.cli import main
         
         # Create a valid CSV file
         csv_content = """Classification,Requirement,SelfScore
@@ -218,7 +218,7 @@ Essential,Python programming,4"""
             test_args = ['scoring_v2.py', temp_path]
             
             # Mock load_matrix to raise KeyboardInterrupt
-            with patch('scoring.scoring_v2.load_matrix') as mock_load:
+            with patch('scoring.cli.load_matrix') as mock_load:
                 mock_load.side_effect = KeyboardInterrupt()
                 
                 with patch('sys.argv', test_args):
@@ -243,7 +243,7 @@ class TestArgumentParsing:
     
     def test_missing_csv_argument(self):
         """Test handling of missing CSV file argument."""
-        from scoring.scoring_v2 import main
+        from scoring.cli import main
         
         test_args = ['scoring_v2.py']  # No CSV file provided
         
@@ -261,7 +261,7 @@ class TestArgumentParsing:
     
     def test_invalid_argument_handling(self):
         """Test handling of invalid command line arguments."""
-        from scoring.scoring_v2 import main
+        from scoring.cli import main
         
         test_args = ['scoring_v2.py', '--invalid-flag', 'file.csv']
         
