@@ -4,50 +4,88 @@ A Python utility for evaluating job fit based on skill matrices. This tool helps
 
 ## Features
 
+- **Modular Architecture**: Clean separation of concerns with dedicated modules for data loading, scoring, and CLI
 - **Advanced Scoring System**: Evaluates skills on a 0-5 scale with emphasis modifiers
 - **Core-Gap Analysis**: Identifies critical skill gaps in Essential requirements
-- **Optional-Skill Cap**: Weight from `Desirable`/`Implicit` rows is limited to 25 % of core points.
-- **Row Normalisation**: Each requirement is scaled against a 22.5 max to keep scoring fair.
+- **Optional-Skill Cap**: Weight from `Desirable`/`Implicit` rows is limited to 25% of core points
+- **Row Normalisation**: Each requirement is scaled against a 22.5 max to keep scoring fair
 - **Flexible Input**: Supports both legacy and new CSV formats
 - **Detailed Reporting**: Provides clear feedback on job fit and improvement areas
 - **Backward Compatible**: Works with both old and new scoring systems
+- **Type Annotated**: Full type hints for better IDE support and code maintainability
 
 ## Quick Start
 
-1. **Prerequisites**
-   - Python 3.8+
+### Prerequisites
+- Python 3.8+
+- pandas (install via `pip install pandas`)
 
-2. **Installation**
-   ```bash
-   # Clone the repository
-   git clone https://github.com/yourusername/job_scorer.git
-   cd job_scorer
-   
-   # Set up a virtual environment (recommended)
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   
-   # Install dependencies
-   pip install pandas
-   ```
+### Installation
 
-3. **Basic Usage**
-   ```bash
-   python scoring/cli.py data/matrix.csv   # autodetects v1 vs v2 by headers
-   ```
-   For v2-specific scoring:
-   ```bash
-   python scoring/scoring_v2.py data/matrix.csv
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/job_scorer.git
+cd job_scorer
+
+# Set up a virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Basic Usage
+
+#### Command Line Interface
+```bash
+# Basic usage (auto-detects v1/v2 format)
+python -m scoring data/matrix.csv
+
+# Or use the direct CLI module
+python -m scoring.cli data/matrix.csv
+
+# For v2-specific scoring
+python -m scoring.scoring_v2 data/matrix.csv
+```
+
+#### Programmatic Usage
+
+```python
+from pathlib import Path
+from scoring import load_matrix, compute_scores
+
+# Load and validate a skill matrix
+df = load_matrix(Path("data/matrix.csv"))
+
+# Compute scores
+result = compute_scores(df)
+
+# Access the results
+print(f"Core gap present: {result.core_gap}")
+print(f"Percentage fit: {result.pct_fit:.1%}")
+```
 
 ## Project Structure
 
 ```
 job_scorer/
-├── scoring/                  # Source code (main modules)
-├── data/                     # Example/reference CSVs
-├── tests/                    # Test scripts and test data
-├── docs/                     # Additional documentation
+├── scoring/                  # Source code package
+│   ├── __init__.py          # Package initialization and public API
+│   ├── cli.py               # Command line interface
+│   ├── config.py            # Configuration and constants
+│   ├── data_loader.py       # CSV loading and validation
+│   ├── scoring_engine.py    # Core scoring algorithms
+│   └── scoring_v2.py        # Lightweight entry point
+├── data/                    # Example/reference CSVs
+├── tests/                   # Test scripts and test data
+│   └── unit/               # Unit tests
+│       ├── test_cli_error_handling.py
+│       ├── test_emphasis.py
+│       ├── test_scoring.py
+│       └── test_validation.py
+├── docs/                    # Additional documentation
+│   └── scoring_v2_refactor_plan.md
 ├── README.md
 ├── CHANGELOG.md
 └── requirements.txt
@@ -174,16 +212,94 @@ The tool provides:
 
 Distributed under the MIT License. See `LICENSE` for details.
 
-## Tests
+## Development
 
-To run all tests:
+### Running Tests
+
+Run the full test suite with coverage:
 ```bash
-pytest -q tests/
+# Run all tests
+pytest tests/
+
+# Run with coverage report
+pytest --cov=scoring --cov-report=term-missing tests/
 ```
+
+### Code Quality
+
+We use several tools to maintain code quality:
+
+```bash
+# Run linter
+ruff check .
+
+# Auto-format code
+black .
+# Sort imports
+isort .
+```
+
+### Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+Please ensure your code passes all tests and follows the project's coding standards.
 
 ## Contributing
 
 Contributions are welcome! Please open an issue to discuss your ideas.
+
+## API Reference
+
+### Core Modules
+
+#### `scoring` Package
+
+```python
+# Main entry point
+from scoring import (
+    # Core functions
+    load_matrix,      # Load and validate skill matrix CSV
+    compute_scores,   # Calculate scores from a DataFrame
+    
+    # Data classes
+    CoreGapSkill,     # Represents a skill with a core gap
+    
+    # Configuration
+    SCORING_CONFIG,   # Default scoring configuration
+    UI_CONFIG,        # UI display settings
+    
+    # CLI
+    main,             # Main CLI entry point
+    parse_args,       # Parse command line arguments
+)
+```
+
+#### `scoring.data_loader`
+
+```python
+from scoring.data_loader import load_matrix
+
+# Load and validate a skill matrix CSV
+df = load_matrix("path/to/matrix.csv")
+```
+
+#### `scoring.scoring_engine`
+
+```python
+from scoring.scoring_engine import compute_scores, CoreGapSkill, emphasis_modifier
+
+# Compute scores from a DataFrame
+result = compute_scores(df)
+
+# Check for core gaps
+if result.core_gap:
+    print("Critical skill gaps found!")
+```
 
 ## Version
 

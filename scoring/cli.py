@@ -1,10 +1,35 @@
 """
 Command Line Interface Module
-============================
+===========================
 
-This module contains the CLI interface and UI output logic for the job_scorer project:
-- parse_args: Command line argument parsing
-- main: Main application logic and user interface output
+This module provides the command-line interface for the job_scorer project,
+handling user interaction, argument parsing, and orchestrating the scoring process.
+
+Key Components:
+- `parse_args()`: Parses command line arguments
+- `main()`: Entry point for the CLI application
+- `display_results()`: Formats and displays scoring results
+- `display_core_gap_analysis()`: Shows detailed core gap information
+
+Usage Examples:
+    ```bash
+    # Basic usage with auto-detection of CSV format
+    python -m scoring data/skills.csv
+    
+    # Show version information
+    python -m scoring --version
+    
+    # Get help
+    python -m scoring --help
+    ```
+
+Exit Codes:
+    0: Success
+    1: Error occurred during execution
+    2: Invalid command line arguments
+
+Note: This module integrates with `scoring_engine.py` for core logic and
+`data_loader.py` for data loading and validation.
 
 All CLI-related logic is isolated here for maintainability and testability.
 """

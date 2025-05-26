@@ -2,10 +2,38 @@
 Scoring Engine Module
 ====================
 
-This module contains the core scoring logic for the job_scorer project:
-- emphasis_modifier: Detects emphasis in requirement text
-- CoreGapSkill: Dataclass for representing core gap skills
-- compute_scores: Main scoring function
+This module contains the core scoring logic for the job_scorer project, providing
+the algorithms and data structures needed to evaluate job skill matrices.
+
+Key Components:
+- `CoreGapSkill`: Dataclass representing a skill with a core gap
+- `compute_scores()`: Main function that calculates scores from a skill matrix
+- `emphasis_modifier()`: Determines emphasis level based on requirement text
+- `ScoreResult`: TypedDict containing scoring results
+
+Usage Example:
+    ```python
+    import pandas as pd
+    from scoring.scoring_engine import compute_scores
+    from scoring.data_loader import load_matrix
+    
+    # Load and validate skill matrix
+    df = load_matrix("skills.csv")
+    
+    # Calculate scores
+    result = compute_scores(df)
+    
+    # Access results
+    print(f"Core gap present: {result.core_gap}")
+    print(f"Percentage fit: {result.pct_fit:.1%}")
+    
+    # Check core gap skills
+    for skill in result.core_gap_skills:
+        print(f"{skill.name}: {skill.severity} severity")
+    ```
+
+Note: This module is designed to work with data loaded by `data_loader.py` and is
+typically used through the CLI interface in `cli.py`.
 
 All scoring-related logic is isolated here for maintainability and testability.
 """

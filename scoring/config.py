@@ -1,11 +1,44 @@
 # -*- coding: utf-8 -*-
 """
 Configuration Module for Job Scorer
-===================================
+Configuration Settings Module
+===========================
 
-This module contains all configuration classes and constants used throughout
-the job scoring system. It provides centralized configuration management
-for scoring parameters, UI settings, and classification rules.
+This module centralizes all configuration settings for the job_scorer project,
+including classification weights, emphasis indicators, and other tunable parameters.
+
+Key Components:
+- `CLASS_WT`: Weights for different skill classifications
+- `EMPHASIS_INDICATORS`: Text patterns that indicate emphasis in requirements
+- `CORE_GAP_THRESHOLD`: Threshold for identifying core gaps
+- `BONUS_CAP_PCT`: Maximum bonus as a percentage of base score
+
+Usage Example:
+    ```python
+    from scoring.config import CLASS_WT, EMPHASIS_INDICATORS
+    
+    # Access configuration values
+    essential_weight = CLASS_WT['Essential']  # 4.0
+    
+    # Check for emphasis indicators
+    has_emphasis = any(ind in requirement for ind in EMPHASIS_INDICATORS)
+    ```
+
+Configuration Details:
+    Classification Weights (CLASS_WT):
+        - Essential: 4.0
+        - Important: 2.0
+        - Desirable: 1.0
+        - Implicit: 0.5
+    
+    Emphasis Indicators (EMPHASIS_INDICATORS):
+        - "*" (asterisk)
+        - "(must)"
+        - "(required)"
+        - "(critical)"
+
+Note: These settings directly impact scoring results. Modify with caution and
+ensure thorough testing after making changes.
 
 Classes:
     EmphasisIndicators: Keywords for detecting emphasis in requirement text

@@ -2,18 +2,49 @@
 Data Loading and Validation Module
 ==================================
 
-This module handles loading and validating skill matrix CSV files for the job scoring system.
-It provides functions to read CSV files, validate their structure and content, and return
-processed DataFrames ready for scoring.
+This module provides functionality to load, validate, and process skill matrix CSV files
+for the job scoring system. It ensures data integrity and prepares the data for scoring.
+
+Key Features:
+- Validates file existence, format, and permissions
+- Checks for required columns and valid data types
+- Processes and normalizes input data
+- Handles various edge cases and error conditions
 
 Main Functions:
-- load_matrix(): Load and validate skill matrix CSV files with derived columns
+- `load_matrix()`: Load and validate skill matrix CSV files
+- `emphasis_modifier()`: Determine emphasis level from requirement text
+
+Usage Example:
+    ```python
+    from pathlib import Path
+    from scoring.data_loader import load_matrix
+    
+    try:
+        # Load and validate a skill matrix
+        df = load_matrix(Path("skills.csv"))
+        print(f"Successfully loaded {len(df)} skills")
+        
+        # Display the first few rows
+        print(df.head())
+        
+    except (FileNotFoundError, ValueError) as e:
+        print(f"Error loading skill matrix: {e}")
+    ```
+
+Input CSV Format:
+    The CSV file must include these required columns:
+    - `Requirement`: Description of the skill/requirement
+    - `Classification`: One of: Essential, Important, Desirable, Implicit
+    - `SelfScore`: Numeric score (0-5)
 
 Dependencies:
-- pandas: For CSV file handling and data processing
-- pathlib: For file path validation
-- config: For scoring configuration and classification weights
-"""
+- pandas: For data manipulation and CSV handling
+- pathlib: For cross-platform path handling
+- config: For scoring configuration defaults
+
+Note: This module is designed to work with the rest of the scoring package
+and is typically used through the main CLI interface."""
 
 from __future__ import annotations
 

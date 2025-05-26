@@ -5,6 +5,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Comprehensive module-level docstrings for all core modules
+- Usage examples in module docstrings for better developer experience
+- Detailed configuration documentation in `config.py`
+- Clear API reference in docstrings for public functions and classes
+- Cross-references between related modules in documentation
+
+### Changed
+- Improved README.md with updated project structure and usage instructions
+- Standardized docstring format across all modules
+- Enhanced error message documentation in CLI module
+- Updated configuration documentation to reflect current settings
+
+### Fixed
+- Fixed various typos and inaccuracies in existing documentation
+- Ensured all public APIs have proper type hints and docstrings
+- Updated outdated references in documentation
 
 ## [2025-05-26]
 ### Added
