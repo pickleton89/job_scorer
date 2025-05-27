@@ -16,8 +16,10 @@ Modules:
 - scoring_engine: Core scoring logic
 """
 
-# Import key components to make them available at the package level
+# --- CLI entry points ---
 from .cli import main, parse_args
+
+# --- Configuration and constants ---
 from .config import (
     CLASS_WT,
     CORE_GAP_THRESHOLDS,
@@ -28,7 +30,11 @@ from .config import (
     UIConfig,
     EmphasisIndicators
 )
+
+# --- Data loading and validation ---
 from .data_loader import load_matrix
+
+# --- Core scoring logic ---
 from .scoring_engine import CoreGapSkill, compute_scores, emphasis_modifier
 
 # Define __all__ to explicitly specify the public API

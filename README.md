@@ -12,13 +12,15 @@ A Python utility for evaluating job fit based on skill matrices. This tool helps
 - **Flexible Input**: Supports both legacy and new CSV formats
 - **Detailed Reporting**: Provides clear feedback on job fit and improvement areas
 - **Backward Compatible**: Works with both old and new scoring systems
-- **Type Annotated**: Full type hints for better IDE support and code maintainability
+- **Type Safe**: Comprehensive type hints with `mypy` support for better code quality and IDE support
+- **Modern Python**: Utilizes Python's latest typing features including type aliases and type guards
 
 ## Quick Start
 
 ### Prerequisites
 - Python 3.8+
 - pandas (install via `pip install pandas`)
+- mypy (for type checking, install via `pip install mypy`)
 
 ### Installation
 
@@ -84,12 +86,27 @@ job_scorer/
 │       ├── test_emphasis.py
 │       ├── test_scoring.py
 │       └── test_validation.py
-├── docs/                    # Additional documentation
-│   └── scoring_v2_refactor_plan.md
+├── docs/                    # Documentation
+│   ├── scoring_v2_refactor_plan.md
+│   └── type_hinting_improvements.md  # Type system documentation
 ├── README.md
 ├── CHANGELOG.md
 └── requirements.txt
 ```
+
+## Type Checking
+
+The project uses Python's type hints and `mypy` for static type checking. To run type checking:
+
+```bash
+# Install mypy if not already installed
+pip install mypy
+
+# Run type checking
+mypy scoring/
+```
+
+For development, consider setting up a pre-commit hook to run type checking before each commit. See [Type Hinting Documentation](docs/type_hinting_improvements.md) for more details.
 
 - Place your own skills/job matrix CSVs in the `data/` directory or specify the path as needed.
 - All scoring scripts are now organized under the `scoring/` package for clarity.

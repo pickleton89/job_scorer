@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Comprehensive type hints throughout the codebase
+- Type checking with `mypy` in CI pipeline
+- Type aliases for better code readability
+- Type checking documentation in `docs/type_hinting_improvements.md`
+- Type stubs for third-party libraries
+- `docs/README.md`: Documentation directory index
+- `tests/README.md`: Test suite directory index
+- Added inline module purpose comments in `scoring/__init__.py` for clarity
+
+## [2025-05-27]
+### Added
 - Comprehensive module-level docstrings for all core modules
 - Usage examples in module docstrings for better developer experience
 - Detailed configuration documentation in `config.py`
