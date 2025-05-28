@@ -90,7 +90,11 @@ def apply_bonus_cap(
 
     # ------------------ percentage cap ----------------
     # Use math.ceil to guarantee at least one bonus row when cap_pct > 0 and core_weight > 0
-    allowed_bonus_weight = int(math.ceil(core_weight * (cap_pct or 0))) if core_weight > 0 and cap_pct > 0 else 0
+    allowed_bonus_weight = (
+        int(math.ceil(core_weight * (cap_pct or 0)))
+        if core_weight is not None and cap_pct is not None and core_weight > 0 and cap_pct > 0
+        else 0
+    )
     bonus_idx = df.index[df["Weight"] == 1]
 
     # If total bonus ≤ allowed, nothing to trim

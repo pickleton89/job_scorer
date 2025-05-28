@@ -19,7 +19,7 @@ import pytest
 class TestMainFunctionErrorHandling:
     """Test suite for main function error handling."""
 
-    def test_file_not_found_handling(self):
+    def test_file_not_found_handling(self) -> None:
         """Test main function handling of non-existent files."""
         from scoring.cli import main
 
@@ -32,19 +32,20 @@ class TestMainFunctionErrorHandling:
                     main()
 
                 # Should exit with code 1
-                assert exc_info.value.code == 1
+                assert exc_info.value.code == 1  # type: ignore[attr-defined]
+
 
                 # Should print error message to stderr
                 stderr_output = mock_stderr.getvalue()
                 assert "Error:" in stderr_output
                 assert "File not found" in stderr_output
 
-    def test_empty_csv_handling(self):
+    def test_empty_csv_handling(self) -> None:
         """Test main function handling of empty CSV files."""
         from scoring.cli import main
 
         # Create an empty CSV file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False, encoding='utf-8') as f:
             temp_path = f.name
 
         try:

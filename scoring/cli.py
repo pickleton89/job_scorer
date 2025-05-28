@@ -15,10 +15,10 @@ Usage Examples:
     ```bash
     # Basic usage with auto-detection of CSV format
     python -m scoring data/skills.csv
-    
+
     # Show version information
     python -m scoring --version
-    
+
     # Get help
     python -m scoring --help
     ```
@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from argparse import Namespace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -52,14 +53,13 @@ if TYPE_CHECKING:
     pass
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args() -> Namespace:
     """Parse command line arguments.
 
     Returns:
-        Parsed command line arguments.
+        Namespace: Parsed command line arguments
 
-    Raises:
-        SystemExit: If there's an error parsing the arguments.
+    Exits with code 1 if no arguments are provided or if there's an error.
     """
     parser = argparse.ArgumentParser(
         description=(
@@ -78,8 +78,11 @@ def parse_args() -> argparse.Namespace:
         ),
     )
 
-    parser.add_argument("csv", type=Path, help="Path to CSV file containing skill matrix data")
-
+    parser.add_argument(
+        "csv_path",
+        type=Path,
+        help="Path to CSV file containing skill matrix data"
+    )
     parser.add_argument(
         "--version",
         action="version",
@@ -112,6 +115,9 @@ def main() -> None:
         PermissionError: If the file cannot be read due to permissions
         ValueError: If the CSV is malformed or contains invalid data
         SystemExit: With status code 1 if an error occurs during processing
+
+    Note:
+        This function never returns normally - it always exits with a status code.
     """
     # Parse command line arguments
     args = parse_args()

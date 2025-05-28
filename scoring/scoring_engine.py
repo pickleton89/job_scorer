@@ -41,7 +41,7 @@ All scoring-related logic is isolated here for maintainability and testability.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Literal, TypeAlias, TypedDict
+from typing import TYPE_CHECKING, Literal, TypeAlias, TypedDict
 
 from pandas import DataFrame
 
@@ -67,16 +67,19 @@ CoreGapSkillDict: TypeAlias = dict[
 ]  # name, classification, self_score, threshold
 
 
-def emphasis_modifier(text: str | Any, config: ScoringConfig = SCORING_CONFIG) -> float:
+def emphasis_modifier(
+    text: str | object,
+    config: ScoringConfig = SCORING_CONFIG
+) -> float:
     """Determine the emphasis modifier for a requirement text.
 
     Args:
-        text: The requirement text to analyze. Can be any type, but only strings are processed.
+        text: The requirement text to analyze. Only string values will be processed.
               Non-string inputs will be treated as having no emphasis.
         config: Scoring configuration containing emphasis settings.
 
     Returns:
-        float: The emphasis modifier to apply to the score:
+        The emphasis modifier to apply to the score:
             - config.emphasis_modifier_high for high emphasis
             - config.emphasis_modifier_low for low emphasis
             - 0.0 for neutral or invalid input
@@ -153,7 +156,7 @@ class CoreGapSkill:
         return "Low"
 
 
-class ScoreResult(TypedDict):
+class ScoreResult(TypedDict, total=False):
     """Typed dictionary representing the result of the scoring calculation.
 
     Attributes:
@@ -163,7 +166,6 @@ class ScoreResult(TypedDict):
         max_points: Maximum possible points (normalized)
         pct_fit: Percentage fit (actual_points / max_points)
     """
-
     core_gap: bool
     core_gap_skills: list[CoreGapSkill]
     actual_points: float
@@ -189,6 +191,9 @@ def compute_scores(df: DataFrame) -> ScoreResult:
     Raises:
         TypeError: If input is not a pandas DataFrame
         ValueError: If required columns are missing or data is invalid
+
+    Note:
+        The function modifies the input DataFrame in-place by adding calculated columns.
     """
     # Validate input
     if not isinstance(df, DataFrame):

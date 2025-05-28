@@ -26,16 +26,20 @@ import sys
 
 # Import the main CLI function from the modular components
 try:
-    # Relative imports for package usage
-    from .cli import main
+    # First try absolute import (when run as a module)
+    from scoring.cli import main
 except ImportError:
-    # Fallback for direct script execution
     try:
-        from cli import main
+        # Then try relative import (when run from the same directory)
+        from .cli import main
     except ImportError:
-        print("Error: Could not import required modules.", file=sys.stderr)
-        print("Please ensure you're running from the correct directory.", file=sys.stderr)
-        sys.exit(1)
+        try:
+            # Finally try direct import (when run as a script)
+            from cli import main
+        except ImportError as e:
+            print(f"Error: Could not import required modules: {e}", file=sys.stderr)
+            print("Please ensure you're running from the correct directory or have installed the package.", file=sys.stderr)
+            sys.exit(1)
 
 
 def run() -> None:

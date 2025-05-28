@@ -209,19 +209,13 @@ class TestComputeScores:
             # Missing ClassWt, EmphMod, SelfScore
         })
 
-        try:
+        with pytest.raises(ValueError, match="Missing required columns"):
             compute_scores(df)
-            assert False, "Should have raised ValueError"
-        except ValueError as e:
-            assert "Missing required columns" in str(e)
 
-    def test_input_validation_wrong_type(self):
+    def test_input_validation_wrong_type(self) -> None:
         """Test input validation for wrong input type."""
-        try:
-            compute_scores("not a dataframe")
-            assert False, "Should have raised TypeError"
-        except TypeError as e:
-            assert "Expected pandas DataFrame" in str(e)
+        with pytest.raises(TypeError, match="Expected pandas DataFrame"):
+            compute_scores("not a dataframe")  # type: ignore[arg-type]
 
     def test_empty_dataframe(self):
         """Test handling of empty DataFrame."""
@@ -313,15 +307,15 @@ class TestComputeScores:
 
         result = compute_scores(df)
 
+
         # Raw score: 3 * (1 + 0.5) * 5 = 22.5
         # Normalized: 22.5 / 22.5 = 1.0
         assert result['actual_points'] == 1.0
         assert result['max_points'] == 1.0
         assert result['pct_fit'] == 1.0
 
-    def test_core_gap_skill_validation_invalid_name(self):
+    def test_core_gap_skill_validation_invalid_name(self) -> None:
         """Test CoreGapSkill validation with invalid name."""
-
         # Empty string name should raise ValueError
         with pytest.raises(ValueError, match="Skill name must be a non-empty string"):
             CoreGapSkill(name="", classification="Essential", self_score=1, threshold=2)
@@ -332,21 +326,29 @@ class TestComputeScores:
 
         # Non-string name should raise ValueError
         with pytest.raises(ValueError, match="Skill name must be a non-empty string"):
-            CoreGapSkill(name=123, classification="Essential", self_score=1, threshold=2)
+            CoreGapSkill(
+                name=123,  # type: ignore[arg-type]
+                classification="Essential",
+                self_score=1,
+                threshold=2
+            )
 
-    def test_core_gap_skill_validation_invalid_classification(self):
+    def test_core_gap_skill_validation_invalid_classification(self) -> None:
         """Test CoreGapSkill validation with invalid classification."""
-
         # Invalid classification should raise ValueError
         with pytest.raises(ValueError, match="Invalid classification: InvalidType"):
             CoreGapSkill(name="Python", classification="InvalidType", self_score=1, threshold=2)
 
-    def test_core_gap_skill_validation_invalid_self_score(self):
+    def test_core_gap_skill_validation_invalid_self_score(self) -> None:
         """Test CoreGapSkill validation with invalid self_score."""
-
         # Non-integer self_score should raise ValueError
         with pytest.raises(ValueError, match="Self score must be an integer between 0 and 5"):
-            CoreGapSkill(name="Python", classification="Essential", self_score=1.5, threshold=2)
+            CoreGapSkill(
+                name="Python",
+                classification="Essential",
+                self_score=1.5,  # type: ignore[arg-type]
+                threshold=2
+            )
 
         # Self score below 0 should raise ValueError
         with pytest.raises(ValueError, match="Self score must be an integer between 0 and 5"):
@@ -356,12 +358,16 @@ class TestComputeScores:
         with pytest.raises(ValueError, match="Self score must be an integer between 0 and 5"):
             CoreGapSkill(name="Python", classification="Essential", self_score=6, threshold=2)
 
-    def test_core_gap_skill_validation_invalid_threshold(self):
+    def test_core_gap_skill_validation_invalid_threshold(self) -> None:
         """Test CoreGapSkill validation with invalid threshold."""
-
         # Non-integer threshold should raise ValueError
         with pytest.raises(ValueError, match="Threshold must be a non-negative integer"):
-            CoreGapSkill(name="Python", classification="Essential", self_score=1, threshold=2.5)
+            CoreGapSkill(
+                name="Python",
+                classification="Essential",
+                self_score=1,
+                threshold=2.5  # type: ignore[arg-type]
+            )
 
         # Negative threshold should raise ValueError
         with pytest.raises(ValueError, match="Threshold must be a non-negative integer"):

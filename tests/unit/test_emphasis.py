@@ -12,7 +12,7 @@ from scoring.scoring_engine import emphasis_modifier
 class TestEmphasisModifier:
     """Test cases for the emphasis_modifier function."""
 
-    def test_high_emphasis_keywords(self):
+    def test_high_emphasis_keywords(self) -> None:
         """Test detection of high emphasis keywords."""
         # Test individual high emphasis keywords
         assert emphasis_modifier("Expert Python developer") == 0.5
@@ -32,7 +32,7 @@ class TestEmphasisModifier:
         assert emphasis_modifier("Proficiency in React") == 0.5
         assert emphasis_modifier("Fluent in multiple languages") == 0.5
 
-    def test_low_emphasis_keywords(self):
+    def test_low_emphasis_keywords(self) -> None:
         """Test detection of low emphasis keywords."""
         # Test individual low emphasis keywords
         assert emphasis_modifier("Basic understanding of Python") == -0.5

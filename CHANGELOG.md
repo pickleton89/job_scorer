@@ -6,14 +6,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Comprehensive type hints throughout the codebase
-- Type checking with `mypy` in CI pipeline
-- Type aliases for better code readability
-- Type checking documentation in `docs/type_hinting_improvements.md`
 - Type stubs for third-party libraries
 - `docs/README.md`: Documentation directory index
 - `tests/README.md`: Test suite directory index
-- Added inline module purpose comments in `scoring/__init__.py` for clarity
+
+### Changed
+- Updated type hints to use modern Python syntax
+- Improved type safety in `scoring_engine.py` and `cli.py`
+- Enhanced docstrings with more detailed type information
+- Made `ScoreResult` TypedDict more flexible with `total=False`
+- Replaced `Any` with more specific types where possible
+- Standardized type annotations across the codebase
+
+### Fixed
+- Removed duplicate docstrings in `cli.py` and `scoring_engine.py`
+- Fixed whitespace and formatting issues
+- Resolved type checking errors in the codebase
+- Ensured consistent docstring formatting
+- Fixed potential type-related bugs in scoring logic
 
 ## [2025-05-27]
 ### Added

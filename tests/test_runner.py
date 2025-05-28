@@ -9,11 +9,26 @@ import argparse
 import subprocess
 import sys
 from pathlib import Path
+from typing import Literal, TypedDict
 
 # Add parent directory to path to import the script
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-def run_test(script_path: str, test_file: str, version: str = "v1") -> dict:
+class TestOutput(TypedDict):
+    """Type definition for test output dictionary.
+
+    Attributes:
+        exit_code: The exit code of the test process
+        stdout: Standard output from the test
+        stderr: Standard error from the test
+        success: Whether the test was successful
+    """
+    exit_code: int
+    stdout: str
+    stderr: str
+    success: bool
+
+def run_test(script_path: str, test_file: str, version: Literal["v1", "v2"] = "v1") -> TestOutput:
     """Run a single test case and return the output as a dictionary."""
     try:
         # Run the script and capture output
@@ -42,7 +57,7 @@ def run_test(script_path: str, test_file: str, version: str = "v1") -> dict:
 
     return output
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Test runner for job skill matrix scoring")
     parser.add_argument("--version", choices=["v1", "v2"], default="v1",
                       help="Which version to test (v1 or v2)")

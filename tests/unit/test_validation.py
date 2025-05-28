@@ -68,13 +68,15 @@ Implicit,Team collaboration,5"""
         with pytest.raises(FileNotFoundError, match="File not found"):
             load_matrix(non_existent_path)
 
-    def test_invalid_path_type_error(self):
+    def test_invalid_path_type_error(self) -> None:
         """Test TypeError for invalid path type."""
+        # Test with integer (invalid type)
         with pytest.raises(TypeError, match="Expected str or Path"):
-            load_matrix(123)  # Invalid type
+            load_matrix(123)  # type: ignore[arg-type]
 
+        # Test with list (invalid type)
         with pytest.raises(TypeError, match="Expected str or Path"):
-            load_matrix(['not', 'a', 'path'])  # Invalid type
+            load_matrix(['not', 'a', 'path'])  # type: ignore[arg-type]
 
     def test_directory_path_error(self):
         """Test ValueError when path points to a directory."""
