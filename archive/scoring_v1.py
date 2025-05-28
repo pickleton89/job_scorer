@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Skill-Matrix Scoring Utility
 ===========================
@@ -111,14 +110,14 @@ def compute_scores(df: pd.DataFrame, effective_total_weight: int) -> dict:
     # Identify core gap skills (Weight == 3 and SelfScore <= 1)
     core_gap_mask = (df["Weight"] == 3) & (df["SelfScore"] <= 1)
     core_gap = core_gap_mask.any()
-    
+
     # Get the list of core gap skills if any exist
     core_gap_skills = []
     if core_gap:
         # Get the requirement/skill name for each core gap
         req_col = [col for col in df.columns if "requirement" in col.lower() or "skill" in col.lower()][0]
         core_gap_skills = df.loc[core_gap_mask, req_col].tolist()
-    
+
     df["WeightedScore"] = df["Weight"] * df["SelfScore"]
 
     actual_points = int(df["WeightedScore"].sum())
@@ -173,7 +172,7 @@ def main() -> None:
     print("\n" + "="*50)
     print("SCORECARD SUMMARY")
     print("="*50)
-    
+
     # Core gap assessment
     core_gap_status = "YES" if metrics["core_gap"] else "NO"
     print(f"\n1. Core gap present : {core_gap_status}")
@@ -182,21 +181,21 @@ def main() -> None:
         print("   ⚠️  Treat as a red flag — address the gap before applying.")
     else:
         print("   ✓  All Weight 3 items are self-scored 2. You clear the 'minimum bar'.")
-    
+
     # Points calculation
     print(f"\n2. Actual points    : {metrics['actual_points']} / {metrics['max_points']}")
     print(f"   • Your weighted evidence of fit: {metrics['actual_points']} points")
     print(f"   • Maximum possible score: {metrics['max_points']} points")
-    
+
     # Percentage fit
     pct = metrics["pct_fit"]
     print(f"\n3. % Fit            : {pct:.1%}")
-    
+
     # Add disclaimer about % Fit when core gaps are present
     if metrics["core_gap"]:
         print("   ⚠️  DISCLAIMER: % Fit is misleading when core gaps are present.")
         print("   ⚠️  Address core gaps first before considering the % Fit value.")
-    
+
     fit_guidance = (
         "   ✓  Excellent overall fit → Apply immediately, emphasize strengths"
         if pct >= 0.80 else
@@ -207,14 +206,14 @@ def main() -> None:
         "   ⚠️  Significant gaps → Up-skill before investing in an application"
     )
     print(fit_guidance)
-    
+
     # Verdict
     if metrics["core_gap"]:
         # Core gap present = YES
         verdict = "Critical gap — address before applying."
         print(f"\n4. Verdict          : {verdict}")
         print("   Note: Core gap overrides the %-Fit tier.")
-        
+
         # Print the core gap skills
         print("\n5. Core Gap Skills (Weight=3, SelfScore≤1):")
         for skill in metrics["core_gap_skills"]:
@@ -236,14 +235,14 @@ def main() -> None:
         else:
             # No core gap and Fit < 50 %
             verdict = "Significant gaps — consider learning first"
-        
+
         print(f"\n4. Verdict          : {verdict}")
-    
+
     # Add next steps guidance
     print("\n" + "-"*50)
     print("RECOMMENDED NEXT STEPS")
     print("-"*50)
-    
+
     if metrics["core_gap"]:
         print("1. Focus on closing the core gap skills listed above.")
         print("2. Re-evaluate after addressing these critical skills.")
@@ -260,7 +259,7 @@ def main() -> None:
         else:
             print("1. Focus on skill development before applying.")
             print("2. Target the Weight 3 and Weight 2 items with low self-scores.")
-    
+
     # Add reminder about self-scoring
     print("\nReminder: Use concrete metrics (projects, KPIs) to justify your self-scores.")
     print("Run this tool again after improving skills or gathering better evidence.")

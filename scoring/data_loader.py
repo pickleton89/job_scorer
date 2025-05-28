@@ -68,7 +68,11 @@ try:
 except ImportError:
     try:
         # Fallback for direct script execution or when module is not part of a package
-        from config import CLASS_WT, SCORING_CONFIG, ScoringConfig  # type: ignore[import-not-found,no-redef]
+        from config import (  # type: ignore[import-not-found,no-redef]
+            CLASS_WT,
+            SCORING_CONFIG,
+            ScoringConfig,
+        )
     except ImportError as ie:
         raise ImportError(
             "Failed to import configuration. Make sure the module is properly installed "

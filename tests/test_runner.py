@@ -6,8 +6,6 @@ This script helps verify both the current (v1) and new (v2) implementations.
 """
 
 import argparse
-import json
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -25,7 +23,7 @@ def run_test(script_path: str, test_file: str, version: str = "v1") -> dict:
             text=True,
             check=True
         )
-        
+
         # Parse the output (this is a simple example - adjust based on actual output)
         output = {
             "exit_code": 0,
@@ -33,7 +31,7 @@ def run_test(script_path: str, test_file: str, version: str = "v1") -> dict:
             "stderr": result.stderr,
             "success": True
         }
-        
+
     except subprocess.CalledProcessError as e:
         output = {
             "exit_code": e.returncode,
@@ -41,7 +39,7 @@ def run_test(script_path: str, test_file: str, version: str = "v1") -> dict:
             "stderr": e.stderr,
             "success": False
         }
-    
+
     return output
 
 def main():
@@ -49,32 +47,32 @@ def main():
     parser.add_argument("--version", choices=["v1", "v2"], default="v1",
                       help="Which version to test (v1 or v2)")
     args = parser.parse_args()
-    
+
     # Determine which script to test
     script_name = "scoring/cli.py"
     if args.version == "v2":
         script_name = "scoring/scoring_v2.py"
-    
+
     # Get the absolute path to the script
     script_path = str(Path(__file__).parent.parent / script_name)
-    
+
     # Find all test files for this version
     test_dir = Path(__file__).parent / "data" / args.version
     test_files = list(test_dir.glob("*.csv"))
-    
+
     if not test_files:
         print(f"No test files found in {test_dir}")
         return
-    
+
     print(f"Running {len(test_files)} test(s) for {args.version}...\n")
-    
+
     # Run tests
     for test_file in test_files:
         print(f"Testing: {test_file.name}")
         print("-" * 50)
-        
+
         result = run_test(script_path, str(test_file), args.version)
-        
+
         # Print test results
         if result["success"]:
             print("✅ Test passed")
@@ -84,7 +82,7 @@ def main():
             print("❌ Test failed")
             print("Error:")
             print(result["stderr"])
-        
+
         print("\n" + "="*50 + "\n")
 
 if __name__ == "__main__":

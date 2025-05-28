@@ -10,7 +10,9 @@ Tests the compute_scores() function which handles:
 
 import pandas as pd
 import pytest
-from scoring.scoring_engine import compute_scores, CoreGapSkill
+
+from scoring.scoring_engine import CoreGapSkill, compute_scores
+
 
 class TestComputeScores:
     """Test cases for the compute_scores function."""
@@ -24,9 +26,9 @@ class TestComputeScores:
             'EmphMod': [0.0, 0.0],
             'SelfScore': [4, 3]
         })
-        
+
         result = compute_scores(df)
-        
+
         assert result['core_gap'] is False
         assert result['core_gap_skills'] == []
         # Raw scores: 3*1*4=12, 2*1*3=6, total=18
@@ -45,12 +47,12 @@ class TestComputeScores:
             'EmphMod': [0.0, 0.0, 0.0],
             'SelfScore': [1, 2, 0]  # All are gaps (≤2 for Essential)
         })
-        
+
         result = compute_scores(df)
-        
+
         assert result['core_gap'] is True
         assert len(result['core_gap_skills']) == 3  # All three are gaps
-        
+
         # Check gap skills are sorted correctly (by classification, then by score)
         gaps = result['core_gap_skills']
         assert gaps[0].name == 'Basic Git'
@@ -72,12 +74,12 @@ class TestComputeScores:
             'EmphMod': [0.0, 0.0, 0.0],
             'SelfScore': [0, 1, 2]  # 0 and 1 are gaps (≤1), 2 is not
         })
-        
+
         result = compute_scores(df)
-        
+
         assert result['core_gap'] is True
         assert len(result['core_gap_skills']) == 2
-        
+
         gaps = result['core_gap_skills']
         assert gaps[0].name == 'Docker'
         assert gaps[0].self_score == 0
@@ -93,12 +95,12 @@ class TestComputeScores:
             'EmphMod': [0.0, 0.0, 0.0, 0.0],
             'SelfScore': [1, 0, 0, 0]  # Essential and Important have gaps, others don't
         })
-        
+
         result = compute_scores(df)
-        
+
         assert result['core_gap'] is True
         assert len(result['core_gap_skills']) == 2
-        
+
         # Should be sorted by classification order (Essential first)
         gaps = result['core_gap_skills']
         assert gaps[0].classification == 'Essential'
@@ -113,9 +115,9 @@ class TestComputeScores:
             'EmphMod': [0.5, -0.5],  # High and low emphasis
             'SelfScore': [4, 3]
         })
-        
+
         result = compute_scores(df)
-        
+
         # Raw scores: 3*(1+0.5)*4=18, 2*(1-0.5)*3=3, total=21
         # Normalized: 18/22.5=0.8, 3/22.5=0.133, total=0.933
         assert result['actual_points'] == 0.93
@@ -131,14 +133,14 @@ class TestComputeScores:
             'EmphMod': [0.0, 0.0, 0.0, 0.0, 0.0],
             'SelfScore': [5, 5, 5, 5, 5]  # Max scores
         })
-        
+
         result = compute_scores(df)
-        
+
         # Core weight = 3.0 + 2.0 = 5.0
         # Max bonus = 5.0 * 0.25 * 5 = 6.25 (25% cap)
         # Actual bonus before cap = 1*5 + 1*5 + 0.5*5 = 12.5
         # Since 12.5 > 6.25, bonus should be capped
-        
+
         # The bonus capping should reduce the total score
         assert result['actual_points'] < 2.0  # Less than if no capping applied
         assert result['core_gap'] is False
@@ -152,13 +154,13 @@ class TestComputeScores:
             'EmphMod': [0.0, 0.0, 0.0],
             'SelfScore': [3, 3, 1]  # Small bonus that won't hit cap
         })
-        
+
         result = compute_scores(df)
-        
+
         # Core weight = 5.0, max bonus = 6.25
         # Actual bonus = 1*1 = 1.0 (well under cap)
         # No scaling should occur
-        
+
         # Raw scores: 3*3=9, 2*3=6, 1*1=1, total=16
         # Normalized: 9/22.5=0.4, 6/22.5=0.267, 1/22.5=0.044, total=0.711
         expected_score = round((9 + 6 + 1) / 22.5, 2)
@@ -173,9 +175,9 @@ class TestComputeScores:
             'EmphMod': [0.0, 0.0, 0.0],
             'SelfScore': [0, 0, 0]
         })
-        
+
         result = compute_scores(df)
-        
+
         assert result['core_gap'] is True
         assert len(result['core_gap_skills']) == 2  # Essential and Important
         assert result['actual_points'] == 0.0
@@ -190,9 +192,9 @@ class TestComputeScores:
             'EmphMod': [0.0, 0.0, 0.0, 0.0],
             'SelfScore': [5, 5, 5, 5]
         })
-        
+
         result = compute_scores(df)
-        
+
         assert result['core_gap'] is False
         assert result['core_gap_skills'] == []
         # With bonus capping, the fit percentage will be lower than without capping
@@ -206,7 +208,7 @@ class TestComputeScores:
             'Classification': ['Essential']
             # Missing ClassWt, EmphMod, SelfScore
         })
-        
+
         try:
             compute_scores(df)
             assert False, "Should have raised ValueError"
@@ -230,9 +232,9 @@ class TestComputeScores:
             'EmphMod': [],
             'SelfScore': []
         })
-        
+
         result = compute_scores(df)
-        
+
         assert result['core_gap'] is False
         assert result['core_gap_skills'] == []
         assert result['actual_points'] == 0.0
@@ -248,9 +250,9 @@ class TestComputeScores:
             'EmphMod': [0.0],
             'SelfScore': [1]  # Core gap
         })
-        
+
         result = compute_scores(df)
-        
+
         assert result['core_gap'] is True
         assert result['core_gap_skills'][0].name == 'Python programming'
 
@@ -263,19 +265,19 @@ class TestComputeScores:
             'EmphMod': [0.0, 0.0, 0.0, 0.0, 0.0],
             'SelfScore': [0, 1, 2, 0, 1]
         })
-        
+
         result = compute_scores(df)
-        
+
         assert result['core_gap'] is True
         gaps = result['core_gap_skills']
-        
+
         # Test severity levels using the correct property name
         essential_0 = next(g for g in gaps if g.name == 'Essential 0')
         essential_1 = next(g for g in gaps if g.name == 'Essential 1')
         essential_2 = next(g for g in gaps if g.name == 'Essential 2')
         important_0 = next(g for g in gaps if g.name == 'Important 0')
         important_1 = next(g for g in gaps if g.name == 'Important 1')
-        
+
         assert essential_0.severity == 'High'  # Essential with score 0
         assert essential_1.severity == 'High'  # Essential with score 1
         assert essential_2.severity == 'Medium'  # Essential with score 2
@@ -291,9 +293,9 @@ class TestComputeScores:
             'EmphMod': [0.0, 0.0],
             'SelfScore': [5, 0]  # Zero bonus score
         })
-        
+
         result = compute_scores(df)
-        
+
         # Should handle zero bonus gracefully without division by zero
         assert result['actual_points'] > 0
         assert result['core_gap'] is False
@@ -308,9 +310,9 @@ class TestComputeScores:
             'EmphMod': [0.5],  # High emphasis
             'SelfScore': [5]
         })
-        
+
         result = compute_scores(df)
-        
+
         # Raw score: 3 * (1 + 0.5) * 5 = 22.5
         # Normalized: 22.5 / 22.5 = 1.0
         assert result['actual_points'] == 1.0
@@ -319,52 +321,48 @@ class TestComputeScores:
 
     def test_core_gap_skill_validation_invalid_name(self):
         """Test CoreGapSkill validation with invalid name."""
-        from scoring.scoring_engine import CoreGapSkill
-        
+
         # Empty string name should raise ValueError
         with pytest.raises(ValueError, match="Skill name must be a non-empty string"):
             CoreGapSkill(name="", classification="Essential", self_score=1, threshold=2)
-        
+
         # Whitespace-only name should raise ValueError
         with pytest.raises(ValueError, match="Skill name must be a non-empty string"):
             CoreGapSkill(name="   ", classification="Essential", self_score=1, threshold=2)
-        
+
         # Non-string name should raise ValueError
         with pytest.raises(ValueError, match="Skill name must be a non-empty string"):
             CoreGapSkill(name=123, classification="Essential", self_score=1, threshold=2)
 
     def test_core_gap_skill_validation_invalid_classification(self):
         """Test CoreGapSkill validation with invalid classification."""
-        from scoring.scoring_engine import CoreGapSkill
-        
+
         # Invalid classification should raise ValueError
         with pytest.raises(ValueError, match="Invalid classification: InvalidType"):
             CoreGapSkill(name="Python", classification="InvalidType", self_score=1, threshold=2)
 
     def test_core_gap_skill_validation_invalid_self_score(self):
         """Test CoreGapSkill validation with invalid self_score."""
-        from scoring.scoring_engine import CoreGapSkill
-        
+
         # Non-integer self_score should raise ValueError
         with pytest.raises(ValueError, match="Self score must be an integer between 0 and 5"):
             CoreGapSkill(name="Python", classification="Essential", self_score=1.5, threshold=2)
-        
+
         # Self score below 0 should raise ValueError
         with pytest.raises(ValueError, match="Self score must be an integer between 0 and 5"):
             CoreGapSkill(name="Python", classification="Essential", self_score=-1, threshold=2)
-        
+
         # Self score above 5 should raise ValueError
         with pytest.raises(ValueError, match="Self score must be an integer between 0 and 5"):
             CoreGapSkill(name="Python", classification="Essential", self_score=6, threshold=2)
 
     def test_core_gap_skill_validation_invalid_threshold(self):
         """Test CoreGapSkill validation with invalid threshold."""
-        from scoring.scoring_engine import CoreGapSkill
-        
+
         # Non-integer threshold should raise ValueError
         with pytest.raises(ValueError, match="Threshold must be a non-negative integer"):
             CoreGapSkill(name="Python", classification="Essential", self_score=1, threshold=2.5)
-        
+
         # Negative threshold should raise ValueError
         with pytest.raises(ValueError, match="Threshold must be a non-negative integer"):
             CoreGapSkill(name="Python", classification="Essential", self_score=1, threshold=-1)

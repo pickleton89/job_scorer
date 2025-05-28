@@ -26,9 +26,9 @@ from .config import (
     SCORING_CONFIG,
     UI_CONFIG,
     ClassificationConfig,
+    EmphasisIndicators,
     ScoringConfig,
     UIConfig,
-    EmphasisIndicators
 )
 
 # --- Data loading and validation ---

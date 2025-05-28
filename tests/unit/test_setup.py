@@ -6,7 +6,9 @@ and that we can import the scoring module.
 """
 
 import pytest
+
 from scoring import scoring_v2
+
 
 def test_pytest_setup():
     """Verify pytest is working correctly."""

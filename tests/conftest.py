@@ -4,12 +4,12 @@ Shared pytest fixtures for job_scorer tests.
 This module provides common fixtures used across unit and integration tests.
 """
 
-import pytest
-import pandas as pd
-from pathlib import Path
-from tempfile import NamedTemporaryFile
-import sys
 import os
+import sys
+from pathlib import Path
+
+import pandas as pd
+import pytest
 
 # Add the project root to Python path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
@@ -36,7 +36,7 @@ def sample_dataframe_v2():
         ],
         'Classification': [
             'Essential',
-            'Important', 
+            'Important',
             'Desirable',
             'Implicit'
         ],
