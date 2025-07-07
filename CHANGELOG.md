@@ -6,17 +6,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Job Scorer Enhancement Framework Implementation Guide
+- Comprehensive design for four strategic positioning enhancements:
+  - Dual-Track Scoring System (executive vs IC requirements)
+  - Experience-Level Appropriate Scoring (career stage calibration)
+  - Cross-Functional Leadership Emphasis (integration capabilities)
+  - Role-Level Calibration (target position adjustments)
+
+### Documentation
+- Completed scoring_v2_refactor_plan.md and moved to archive
+- Updated docs with implementation strategies for enhancement framework
+- Added detailed code integration examples and migration paths
+
+## [2.1.0] - 2025-07-07
+### Major Achievement: Refactoring Complete ✅
+- **COMPLETED**: Scoring V2 refactoring successfully implemented
+- **Result**: scoring_v2.py reduced from 632 lines to 101 lines
+- **Architecture**: Modular design with clean separation of concerns
+
+### Added
 - Type stubs for third-party libraries
-- `docs/README.md`: Documentation directory index
+- `docs/README.md`: Documentation directory index  
 - `tests/README.md`: Test suite directory index
+- Comprehensive modular architecture:
+  - `__init__.py`: Package initialization (59 lines)
+  - `config.py`: Configuration classes (207 lines) 
+  - `data_loader.py`: CSV loading & validation (246 lines)
+  - `scoring_engine.py`: Core scoring algorithms (277 lines)
+  - `cli.py`: CLI interface & UI output (274 lines)
+  - `py.typed`: Type checking marker
+  - `scoring_v2.py`: Lightweight entry point (101 lines)
 
 ### Changed
+- **BREAKING**: Refactored scoring_v2.py into modular architecture
+- Split functionality into data_loader.py, scoring_engine.py, and cli.py
+- Updated import paths for programmatic usage
+- Maintained 100% backward compatibility for CLI usage
 - Updated type hints to use modern Python syntax
 - Improved type safety in `scoring_engine.py` and `cli.py`
 - Enhanced docstrings with more detailed type information
 - Made `ScoreResult` TypedDict more flexible with `total=False`
 - Replaced `Any` with more specific types where possible
 - Standardized type annotations across the codebase
+
+### Technical
+- Reduced main file size from 632 to 101 lines
+- Improved code organization and maintainability
+- Enhanced testing isolation and module boundaries
+- Prepared architecture for enhancement framework implementation
+- All 67 tests continue to pass with 82% coverage maintained
 
 ### Fixed
 - Removed duplicate docstrings in `cli.py` and `scoring_engine.py`

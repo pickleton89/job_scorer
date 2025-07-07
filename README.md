@@ -15,6 +15,46 @@ A Python utility for evaluating job fit based on skill matrices. This tool helps
 - **Type Safe**: Comprehensive type hints with `mypy` support for better code quality and IDE support
 - **Modern Python**: Utilizes Python's latest typing features including type aliases and type guards
 
+## Architecture
+
+The project follows a modular architecture with clean separation of concerns:
+
+```
+scoring/
+├── __init__.py           # Package initialization
+├── config.py             # Configuration classes and constants
+├── data_loader.py        # CSV loading and validation
+├── scoring_engine.py     # Core scoring algorithms and business logic
+├── cli.py                # Command-line interface and user interaction
+├── py.typed              # Type checking marker for PEP 561
+└── scoring_v2.py         # Lightweight entry point
+```
+
+### Module Responsibilities
+
+- **`config.py`**: Centralized configuration with classification weights, emphasis indicators, and UI settings
+- **`data_loader.py`**: Handles CSV file loading, validation, and format detection (v1/v2)
+- **`scoring_engine.py`**: Core business logic including scoring calculations, emphasis detection, and core gap analysis
+- **`cli.py`**: Command-line interface, argument parsing, and user output formatting
+- **`scoring_v2.py`**: Main entry point that orchestrates the other modules
+
+### Programmatic Usage
+
+```python
+# Import specific functionality
+from scoring.data_loader import load_matrix
+from scoring.scoring_engine import compute_scores, emphasis_modifier
+from scoring.config import SCORING_CONFIG
+
+# Load and process skill matrix
+df = load_matrix("skills.csv")
+result = compute_scores(df)
+
+# Access results
+print(f"Job fit: {result['pct_fit']:.1%}")
+print(f"Core gaps: {len(result['core_gap_skills'])}")
+```
+
 ## Quick Start
 
 ### Prerequisites
