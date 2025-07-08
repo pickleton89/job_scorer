@@ -1,0 +1,5 @@
+Classification,Requirement,SelfScore
+Essential,Test requirement with no special keywords,3
+Important,Basic requirement for testing,2
+Desirable,Simple test case,1
+Implicit,Another plain requirement,4
