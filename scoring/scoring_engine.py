@@ -8,6 +8,7 @@ the algorithms and data structures needed to evaluate job skill matrices.
 Key Components:
 - `CoreGapSkill`: Dataclass representing a skill with a core gap
 - `compute_scores()`: Main function that calculates scores from a skill matrix
+- `compute_scores_enhanced()`: Enhanced scoring with strategic positioning features
 - `emphasis_modifier()`: Determines emphasis level based on requirement text
 - `ScoreResult`: TypedDict containing scoring results
 
@@ -505,6 +506,187 @@ def compute_scores(df: DataFrame) -> ScoreResult:
         raise ValueError(
             f"Error calculating scores. Required columns or valid data missing: {e}"
         ) from e
+
+    return ScoreResult(
+        core_gap=core_gap,
+        core_gap_skills=core_gap_skills,
+        actual_points=actual_points,
+        max_points=max_points,
+        pct_fit=pct_fit,
+    )
+
+
+def compute_scores_enhanced(
+    df: DataFrame,
+    enable_enhancements: bool = False,
+    target_role_type: str = "executive",
+    years_experience: int = 20,
+    target_role_level: str = "senior_executive",
+    proven_strengths: list[str] | None = None
+) -> ScoreResult:
+    """Compute scores with optional strategic positioning enhancements.
+    
+    This function extends the standard compute_scores() with four enhancement modules:
+    1. Dual-Track Scoring: Aligns executive vs IC requirements
+    2. Experience-Level Scoring: Calibrates for career stage
+    3. Cross-Functional Leadership: Rewards integration capabilities  
+    4. Role-Level Calibration: Adjusts for target position level
+    
+    Args:
+        df: Input DataFrame containing skill matrix data
+        enable_enhancements: Whether to apply enhancement framework
+        target_role_type: Target role type ("executive" or "ic")
+        years_experience: Years of professional experience for calibration
+        target_role_level: Target role level ("c_suite", "senior_executive", "director_vp", "senior_ic")
+        proven_strengths: List of proven strength keywords for bonuses
+        
+    Returns:
+        ScoreResult: Dictionary containing enhanced scoring results
+        
+    Raises:
+        TypeError: If input is not a pandas DataFrame
+        ValueError: If required columns are missing or data is invalid
+        
+    Note:
+        When enhancements are disabled, this function behaves identically to compute_scores().
+        The function modifies the input DataFrame in-place by adding calculated columns.
+    """
+    # If enhancements are disabled, use standard scoring
+    if not enable_enhancements:
+        return compute_scores(df)
+    
+    # Validate input (same as compute_scores)
+    if not isinstance(df, DataFrame):
+        raise TypeError("Expected pandas DataFrame")
+
+    # Determine the requirement/skill column name
+    req_col = None
+    for col in ["Requirement", "Skill"]:
+        if col in df.columns:
+            req_col = col
+            break
+
+    if req_col is None or not {"Classification", "SelfScore", "ClassWt", "EmphMod"}.issubset(
+        df.columns
+    ):
+        raise ValueError(
+            "Missing required columns. Need: Classification, SelfScore, ClassWt, EmphMod, and either Requirement or Skill"
+        )
+
+    # Apply Enhancement 1: Dual-Track Scoring
+    df["ReqType"] = df[req_col].apply(lambda x: classify_requirement_type(str(x)))
+    df["DualTrackMod"] = df["ReqType"].apply(
+        lambda x: dual_track_modifier(x, target_role_type)
+    )
+    
+    # Apply Enhancement 2: Experience-Level Scoring
+    df["SkillCategory"] = df[req_col].apply(lambda x: categorize_skill(str(x)))
+    df["ExpLevelMod"] = df.apply(
+        lambda row: experience_level_modifier(
+            row["SkillCategory"], 
+            int(row["SelfScore"]), 
+            years_experience
+        ), 
+        axis=1
+    )
+    
+    # Apply Enhancement 3: Cross-Functional Leadership
+    complexity_results = df[req_col].apply(
+        lambda x: assess_cross_functional_complexity(str(x))
+    )
+    df["CrossFuncComplexity"] = complexity_results.apply(lambda x: x[0])
+    df["IndicatorCount"] = complexity_results.apply(lambda x: x[1])
+    
+    df["MatchesStrength"] = df[req_col].apply(
+        lambda x: matches_proven_strength(str(x), proven_strengths)
+    )
+    df["CrossFuncMod"] = df.apply(
+        lambda row: cross_functional_modifier(
+            row["CrossFuncComplexity"],
+            row["MatchesStrength"],
+            target_role_type == "executive"
+        ),
+        axis=1
+    )
+    
+    # Apply Enhancement 4: Role-Level Calibration
+    role_weights = get_role_weights(target_role_level)
+    df["RoleLevelMod"] = df["SkillCategory"].apply(
+        lambda cat: getattr(role_weights, cat, 1.0) if cat else 1.0
+    )
+    
+    # Calculate enhanced raw scores
+    df["RowScoreRaw"] = (
+        df["ClassWt"] * 
+        (1 + df["EmphMod"]) * 
+        df["SelfScore"] * 
+        df["DualTrackMod"] * 
+        df["ExpLevelMod"] * 
+        df["CrossFuncMod"] * 
+        df["RoleLevelMod"]
+    )
+    
+    # Apply bonus capping (similar to standard scoring)
+    # Separate core (Essential/Important) from bonus (Desirable/Implicit) skills
+    core_mask = df["Classification"].isin(["Essential", "Important"])
+    bonus_mask = df["Classification"].isin(["Desirable", "Implicit"])
+    
+    core_points = df.loc[core_mask, "RowScoreRaw"].sum() if core_mask.any() else 0.0
+    bonus_points = df.loc[bonus_mask, "RowScoreRaw"].sum() if bonus_mask.any() else 0.0
+    
+    # Apply 25% bonus cap
+    max_bonus = core_points * SCORING_CONFIG.bonus_cap_percentage
+    capped_bonus = min(bonus_points, max_bonus)
+    
+    # Adjust bonus scores if capping is needed
+    if bonus_points > max_bonus and bonus_mask.any():
+        bonus_factor = max_bonus / bonus_points if bonus_points > 0 else 0
+        df.loc[bonus_mask, "RowScoreRaw"] *= bonus_factor
+    
+    # Normalize scores
+    theoretical_max = SCORING_CONFIG.theoretical_max_raw_score_per_row
+    df["RowScoreNorm"] = df["RowScoreRaw"] / theoretical_max
+    
+    # Calculate final metrics
+    actual_points = round(float(df["RowScoreNorm"].sum()), 2)
+    max_points = round(float(len(df)), 2)
+    pct_fit = round(actual_points / max_points, 2) if max_points else 0.0
+    
+    # Core gap detection (same logic as standard scoring)
+    core_gap_skills: list[CoreGapSkill] = []
+    gap_thresholds = ClassificationConfig.get_gap_thresholds()
+
+    for _, row in df.iterrows():
+        try:
+            classification: ClassificationName = row["Classification"]
+            self_score: int = int(row["SelfScore"])
+
+            # Skip if not Essential or Important
+            if classification not in ("Essential", "Important"):
+                continue
+
+            threshold = gap_thresholds.get(classification, 0)
+
+            if self_score <= threshold:
+                core_gap_skills.append(
+                    CoreGapSkill(
+                        name=str(row[req_col]),
+                        classification=classification,
+                        self_score=self_score,
+                        threshold=threshold,
+                    )
+                )
+        except (ValueError, KeyError) as e:
+            # Log warning but continue processing other rows
+            skill_name = str(row.get(req_col, "Unknown"))
+            print(f"Warning: Invalid data for skill '{skill_name}': {e}")
+            continue
+
+    # Sort core_gap_skills for deterministic output
+    core_gap_skills = sorted(
+        core_gap_skills, key=lambda g: (g.classification, g.self_score, g.name)
+    )
+    core_gap = bool(core_gap_skills)
 
     return ScoreResult(
         core_gap=core_gap,

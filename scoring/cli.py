@@ -47,7 +47,7 @@ import pandas as pd
 # Local imports
 from .config import CORE_GAP_THRESHOLDS, UI_CONFIG
 from .data_loader import load_matrix
-from .scoring_engine import compute_scores
+from .scoring_engine import compute_scores, compute_scores_enhanced
 
 if TYPE_CHECKING:
     pass
@@ -65,12 +65,17 @@ def parse_args() -> Namespace:
         description=(
             "Score your job application fit against a skill matrix.\n\n"
             "The tool analyzes your self-assessed skills against job requirements\n"
-            "and provides a detailed report with recommendations."
+            "and provides a detailed report with recommendations.\n\n"
+            "NEW: Strategic positioning enhancements for executive roles available\n"
+            "with --enable-enhancements flag for advanced career positioning."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
-            "Example:\n"
-            "  python job-skill-matrix-scoring.py skills.csv\n\n"
+            "Examples:\n"
+            "  python job-skill-matrix-scoring.py skills.csv\n"
+            "  python job-skill-matrix-scoring.py skills.csv --enable-enhancements\n"
+            "  python job-skill-matrix-scoring.py skills.csv --enable-enhancements \\\n"
+            "    --target-role-level c_suite --proven-strengths cross-functional bioinformatics\n\n"
             "For best results, ensure your CSV follows the required format:\n"
             "  - One requirement per row\n"
             "  - Use valid Classification values\n"
@@ -88,6 +93,42 @@ def parse_args() -> Namespace:
         action="version",
         version="%(prog)s 2.0.0",
         help="Show program's version number and exit",
+    )
+    
+    # Enhancement options
+    enhancement_group = parser.add_argument_group("Enhancement Options")
+    
+    enhancement_group.add_argument(
+        "--enable-enhancements",
+        action="store_true",
+        help="Enable all strategic positioning enhancements for executive roles"
+    )
+    
+    enhancement_group.add_argument(
+        "--target-role-type",
+        choices=["executive", "ic", "hybrid"],
+        default="executive",
+        help="Target role type for dual-track scoring (default: executive)"
+    )
+    
+    enhancement_group.add_argument(
+        "--years-experience",
+        type=int,
+        default=20,
+        help="Years of professional experience for calibration (default: 20)"
+    )
+    
+    enhancement_group.add_argument(
+        "--target-role-level",
+        choices=["c_suite", "senior_executive", "director_vp", "senior_ic"],
+        default="senior_executive", 
+        help="Target role level for calibration (default: senior_executive)"
+    )
+    
+    enhancement_group.add_argument(
+        "--proven-strengths",
+        nargs="+",
+        help="List of proven cross-functional strengths (e.g., 'cross-functional' 'bioinformatics')"
     )
 
     try:
@@ -124,10 +165,10 @@ def main() -> None:
 
     # Load and validate the skill matrix
     try:
-        if not args.csv.exists():
-            raise FileNotFoundError(f"File not found: {args.csv}")
+        if not args.csv_path.exists():
+            raise FileNotFoundError(f"File not found: {args.csv_path}")
 
-        df_raw = load_matrix(args.csv)
+        df_raw = load_matrix(args.csv_path)
 
         # Basic validation of the loaded data
         if df_raw.empty:
@@ -143,7 +184,17 @@ def main() -> None:
 
     # Process the matrix and calculate metrics
     try:
-        metrics = compute_scores(df_raw)
+        if args.enable_enhancements:
+            metrics = compute_scores_enhanced(
+                df_raw,
+                enable_enhancements=True,
+                target_role_type=args.target_role_type,
+                years_experience=args.years_experience,
+                target_role_level=args.target_role_level,
+                proven_strengths=args.proven_strengths
+            )
+        else:
+            metrics = compute_scores(df_raw)
     except Exception as e:
         print(f"Error calculating scores: {e}", file=sys.stderr)
         print(
@@ -159,7 +210,16 @@ def main() -> None:
 
     separator = "-" * UI_CONFIG.separator_length
     print(f"\n{separator}")
-    print("VERDICT".center(UI_CONFIG.separator_length))
+    if args.enable_enhancements:
+        print("ENHANCED STRATEGIC POSITIONING RESULTS".center(UI_CONFIG.separator_length))
+        print(f"Role Type: {args.target_role_type.title()} | Experience: {args.years_experience}y | Level: {args.target_role_level.replace('_', ' ').title()}".center(UI_CONFIG.separator_length))
+        if args.proven_strengths:
+            strengths_text = f"Proven Strengths: {', '.join(args.proven_strengths)}"
+            print(strengths_text.center(UI_CONFIG.separator_length))
+        print(separator)
+        print("VERDICT".center(UI_CONFIG.separator_length))
+    else:
+        print("VERDICT".center(UI_CONFIG.separator_length))
     print(separator)
 
     # Core gap status
