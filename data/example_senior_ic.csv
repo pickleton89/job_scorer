@@ -1,0 +1,13 @@
+Classification,Requirement,SelfScore
+Essential,Develop novel computational algorithms for drug discovery,5
+Essential,Design and implement machine learning models for biological data,4
+Essential,Optimize large-scale data processing pipelines,4
+Essential,Publish research findings in top-tier journals,3
+Important,Mentor junior computational scientists,2
+Important,Collaborate with experimental biology teams,4
+Important,Stay current with latest computational methods and tools,5
+Important,Present research at scientific conferences,3
+Desirable,Contribute to open-source bioinformatics projects,3
+Desirable,Experience with cloud computing platforms,4
+Implicit,Code review and maintain high software quality standards,5
+Implicit,Document research methodologies and findings,4

@@ -91,7 +91,7 @@ def parse_args() -> Namespace:
     parser.add_argument(
         "--version",
         action="version",
-        version="%(prog)s 2.0.0",
+        version="%(prog)s 3.0.0 - Strategic Positioning Enhancement Framework",
         help="Show program's version number and exit",
     )
     
