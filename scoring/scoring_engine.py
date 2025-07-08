@@ -11,6 +11,16 @@ Key Components:
 - `emphasis_modifier()`: Determines emphasis level based on requirement text
 - `ScoreResult`: TypedDict containing scoring results
 
+Enhancement Functions:
+- `classify_requirement_type()`: Classifies requirements as executive/IC/hybrid
+- `dual_track_modifier()`: Calculates dual-track scoring adjustments
+- `categorize_skill()`: Categorizes skills by type (leadership, technical, etc.)
+- `experience_level_modifier()`: Applies experience-level calibration
+- `assess_cross_functional_complexity()`: Evaluates cross-functional complexity
+- `cross_functional_modifier()`: Calculates cross-functional bonuses
+- `get_role_weights()`: Gets role-specific weight adjustments
+- `matches_proven_strength()`: Checks for proven strength matches
+
 Usage Example:
     ```python
     import pandas as pd
@@ -48,9 +58,17 @@ from pandas import DataFrame
 # Local imports
 from .config import (
     SCORING_CONFIG,
+    DUAL_TRACK_CONFIG,
+    EXPERIENCE_CONFIG,
+    CROSS_FUNCTIONAL_CONFIG,
+    ROLE_LEVEL_CONFIG,
     ClassificationConfig,
     ClassificationName,
     ScoringConfig,
+    DualTrackConfig,
+    ExperienceLevelConfig,
+    CrossFunctionalConfig,
+    RoleLevelConfig,
 )
 
 if TYPE_CHECKING:
@@ -171,6 +189,226 @@ class ScoreResult(TypedDict, total=False):
     actual_points: float
     max_points: float
     pct_fit: float
+
+
+# --- Enhancement Modifier Functions ---
+
+def classify_requirement_type(
+    text: str,
+    config: DualTrackConfig = DUAL_TRACK_CONFIG
+) -> Literal["executive", "ic", "hybrid"]:
+    """Classify a requirement as executive-focused, IC-focused, or hybrid.
+    
+    Args:
+        text: The requirement text to analyze
+        config: Dual-track configuration containing indicator keywords
+        
+    Returns:
+        Classification of the requirement type
+    """
+    text_lower = text.lower()
+    
+    exec_count = sum(1 for ind in config.executive_indicators if ind in text_lower)
+    ic_count = sum(1 for ind in config.ic_indicators if ind in text_lower)
+    
+    if exec_count > ic_count * 1.5:
+        return "executive"
+    elif ic_count > exec_count * 1.5:
+        return "ic"
+    else:
+        return "hybrid"
+
+
+def dual_track_modifier(
+    requirement_type: str,
+    target_role_type: str,
+    config: DualTrackConfig = DUAL_TRACK_CONFIG
+) -> float:
+    """Calculate scoring modifier based on requirement and role alignment.
+    
+    Args:
+        requirement_type: Type of requirement (executive/ic/hybrid)
+        target_role_type: Target role type (executive/ic)
+        config: Dual-track configuration
+        
+    Returns:
+        Scoring modifier to apply
+    """
+    if requirement_type == "hybrid":
+        return config.aligned_multiplier
+    
+    if requirement_type == "ic" and target_role_type == "executive":
+        return config.ic_for_executive_multiplier
+    elif requirement_type == "executive" and target_role_type == "ic":
+        return config.executive_for_ic_multiplier
+    else:
+        return config.aligned_multiplier
+
+
+def categorize_skill(
+    skill_text: str,
+    config: ExperienceLevelConfig = EXPERIENCE_CONFIG
+) -> str | None:
+    """Categorize a skill based on keyword detection.
+    
+    Args:
+        skill_text: The skill description text
+        config: Experience level configuration
+        
+    Returns:
+        Skill category name or None if no match found
+    """
+    skill_lower = skill_text.lower()
+    
+    for category, keywords in config.skill_categories.items():
+        if any(keyword in skill_lower for keyword in keywords):
+            return category
+    
+    return None
+
+
+def experience_level_modifier(
+    skill_category: str | None,
+    self_score: int,
+    years_experience: int,
+    config: ExperienceLevelConfig = EXPERIENCE_CONFIG
+) -> float:
+    """Calculate experience-level appropriate score modifier.
+    
+    Args:
+        skill_category: Category of the skill
+        self_score: Self-assessed score for the skill
+        years_experience: Years of professional experience
+        config: Experience level configuration
+        
+    Returns:
+        Scoring modifier to apply
+    """
+    if skill_category is None or years_experience < 15:
+        return 1.0
+    
+    # Get baseline for this skill category
+    baseline = getattr(config.senior_executive_baselines, skill_category, 0)
+    
+    if self_score < baseline:
+        # Apply penalty for below-baseline scores
+        return config.below_baseline_penalty
+    elif self_score > baseline:
+        # Apply bonus for exceeding baseline
+        return 1.0 + (self_score - baseline) * config.above_baseline_bonus_rate
+    else:
+        return 1.0
+
+
+def assess_cross_functional_complexity(
+    text: str,
+    config: CrossFunctionalConfig = CROSS_FUNCTIONAL_CONFIG
+) -> tuple[str, int]:
+    """Assess the cross-functional complexity of a requirement.
+    
+    Args:
+        text: The requirement text to analyze
+        config: Cross-functional configuration
+        
+    Returns:
+        Tuple of (complexity_level, indicator_count)
+    """
+    text_lower = text.lower()
+    
+    # Count indicators from each category
+    indicator_count = 0
+    for indicator_set in [
+        config.collaboration_indicators,
+        config.domain_bridging_indicators,
+        config.translation_indicators,
+        config.integration_indicators
+    ]:
+        if any(ind in text_lower for ind in indicator_set):
+            indicator_count += 1
+    
+    # Determine complexity level
+    if indicator_count >= config.high_complexity_threshold:
+        return "high", indicator_count
+    elif indicator_count >= config.medium_complexity_threshold:
+        return "medium", indicator_count
+    else:
+        return "low", indicator_count
+
+
+def cross_functional_modifier(
+    complexity: str,
+    matches_proven_strength: bool,
+    is_executive_role: bool,
+    config: CrossFunctionalConfig = CROSS_FUNCTIONAL_CONFIG
+) -> float:
+    """Calculate cross-functional leadership scoring modifier.
+    
+    Args:
+        complexity: Complexity level (high/medium/low)
+        matches_proven_strength: Whether this matches a proven strength
+        is_executive_role: Whether target role is executive
+        config: Cross-functional configuration
+        
+    Returns:
+        Scoring modifier to apply
+    """
+    base_multiplier = 1.0
+    
+    if complexity == "high":
+        base_multiplier = config.high_complexity_multiplier
+    elif complexity == "medium":
+        base_multiplier = config.medium_complexity_multiplier
+    
+    # Add bonuses
+    if matches_proven_strength:
+        base_multiplier += config.proven_strength_bonus
+    if is_executive_role:
+        base_multiplier += config.executive_role_bonus
+    
+    return base_multiplier
+
+
+def get_role_weights(
+    target_role_level: str,
+    config: RoleLevelConfig = ROLE_LEVEL_CONFIG
+) -> RoleLevelConfig.RoleWeights:
+    """Get role weights for a specific target role level.
+    
+    Args:
+        target_role_level: Target role level
+        config: Role level configuration
+        
+    Returns:
+        Role weights for the specified level
+    """
+    weights_map = {
+        "c_suite": config.c_suite_weights,
+        "senior_executive": config.senior_executive_weights,
+        "director_vp": config.director_vp_weights,
+        "senior_ic": config.senior_ic_weights
+    }
+    
+    return weights_map.get(target_role_level, config.senior_executive_weights)
+
+
+def matches_proven_strength(
+    requirement_text: str,
+    proven_strengths: list[str] | None
+) -> bool:
+    """Check if a requirement matches any proven strengths.
+    
+    Args:
+        requirement_text: The requirement text to check
+        proven_strengths: List of proven strength keywords
+        
+    Returns:
+        True if requirement matches any proven strength
+    """
+    if not proven_strengths:
+        return False
+    
+    req_lower = requirement_text.lower()
+    return any(strength.lower() in req_lower for strength in proven_strengths)
 
 
 # --- Compute Scores ---

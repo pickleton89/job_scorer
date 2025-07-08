@@ -41,12 +41,20 @@ Classes:
     UIConfig: UI-related configuration constants
     ScoringConfig: Core scoring system configuration
     ClassificationConfig: Skill classification rules and weights
+    DualTrackConfig: Configuration for dual-track (executive vs IC) scoring
+    ExperienceLevelConfig: Configuration for experience-level calibration
+    CrossFunctionalConfig: Configuration for cross-functional leadership detection
+    RoleLevelConfig: Configuration for role-level calibration
 
 Global Instances:
     SCORING_CONFIG: Default scoring configuration
     UI_CONFIG: Default UI configuration
     CLASS_WT: Classification weights dictionary
     CORE_GAP_THRESHOLDS: Core gap threshold dictionary
+    DUAL_TRACK_CONFIG: Default dual-track configuration
+    EXPERIENCE_CONFIG: Default experience-level configuration
+    CROSS_FUNCTIONAL_CONFIG: Default cross-functional configuration
+    ROLE_LEVEL_CONFIG: Default role-level configuration
 """
 
 from __future__ import annotations
@@ -200,8 +208,160 @@ ClassificationConfig.IMPLICIT = ClassificationConfig(
 ClassificationWeights: TypeAlias = dict[ClassificationName, float]
 GapThresholds: TypeAlias = dict[ClassificationName, int]
 
+# Enhancement Configuration Classes
+@dataclass(frozen=True)
+class DualTrackConfig:
+    """Configuration for dual-track (executive vs IC) scoring adjustments."""
+    
+    # Keyword indicators for role type detection
+    executive_indicators: tuple[str, ...] = (
+        "strategy", "vision", "roadmap", "portfolio", "pipeline",
+        "lead", "manage", "direct", "oversee", "build team",
+        "licensing", "partnerships", "fundraising", "stakeholder",
+        "evaluate", "prioritize", "allocate", "approve"
+    )
+    
+    ic_indicators: tuple[str, ...] = (
+        "expert", "advanced", "develop", "implement", "optimize",
+        "code", "analyze", "model", "design", "execute",
+        "novel", "research", "discover", "invent", "pioneer"
+    )
+    
+    # Scoring multipliers
+    ic_for_executive_multiplier: float = 0.9
+    executive_for_ic_multiplier: float = 0.8
+    aligned_multiplier: float = 1.0
+
+
+@dataclass(frozen=True)
+class ExperienceLevelConfig:
+    """Configuration for experience-level calibration."""
+    
+    @dataclass(frozen=True)
+    class SkillBaseline:
+        """Minimum expected scores by skill category for different experience levels."""
+        basic_technical: int = 3
+        leadership: int = 4
+        strategic_thinking: int = 4
+        communication: int = 4
+        domain_expertise: int = 4
+    
+    # Baselines by experience level (years)
+    senior_executive_baselines: SkillBaseline = field(
+        default_factory=lambda: ExperienceLevelConfig.SkillBaseline()
+    )
+    
+    # Penalty/bonus configuration
+    below_baseline_penalty: float = 0.7
+    above_baseline_bonus_rate: float = 0.1
+    
+    # Skill category detection keywords
+    skill_categories: dict[str, tuple[str, ...]] = field(default_factory=lambda: {
+        "basic_technical": ("data", "analysis", "programming", "statistics"),
+        "leadership": ("lead", "manage", "team", "mentor", "coach"),
+        "strategic_thinking": ("strategy", "vision", "roadmap", "planning"),
+        "communication": ("present", "communicate", "stakeholder", "influence"),
+        "domain_expertise": ("drug", "discovery", "clinical", "therapeutic", "biotech")
+    })
+
+
+@dataclass(frozen=True)
+class CrossFunctionalConfig:
+    """Configuration for cross-functional leadership detection and scoring."""
+    
+    # Indicator categories
+    collaboration_indicators: tuple[str, ...] = (
+        "cross-functional", "multidisciplinary", "collaborate",
+        "coordination", "integrate"
+    )
+    
+    domain_bridging_indicators: tuple[str, ...] = (
+        "chemistry", "biology", "clinical", "business", "regulatory",
+        "platform development", "molecular biology", "informatics",
+        "scientists", "clinicians", "strategists"
+    )
+    
+    translation_indicators: tuple[str, ...] = (
+        "interpret", "communicate", "translate", "bridge",
+        "explain", "stakeholder", "findings", "results", "insights"
+    )
+    
+    integration_indicators: tuple[str, ...] = (
+        "pipeline", "therapeutic", "drug discovery", "target",
+        "optimization", "licensing", "partnerships", "evaluation"
+    )
+    
+    # Complexity scoring
+    high_complexity_threshold: int = 3  # Number of indicator matches
+    medium_complexity_threshold: int = 1
+    
+    # Multipliers
+    high_complexity_multiplier: float = 1.3
+    medium_complexity_multiplier: float = 1.15
+    proven_strength_bonus: float = 0.1
+    executive_role_bonus: float = 0.05
+
+
+@dataclass(frozen=True)
+class RoleLevelConfig:
+    """Configuration for role-level calibration."""
+    
+    @dataclass(frozen=True)
+    class RoleWeights:
+        """Skill category weights for a specific role level."""
+        strategic_thinking: float = 1.0
+        business_acumen: float = 1.0
+        cross_functional: float = 1.0
+        technical_literacy: float = 1.0
+        hands_on_skills: float = 1.0
+        domain_expertise: float = 1.0
+    
+    # Role level configurations
+    c_suite_weights: RoleWeights = field(default_factory=lambda: RoleLevelConfig.RoleWeights(
+        strategic_thinking=1.4,
+        business_acumen=1.3,
+        cross_functional=1.2,
+        technical_literacy=0.8,
+        hands_on_skills=0.6,
+        domain_expertise=1.0
+    ))
+    
+    senior_executive_weights: RoleWeights = field(default_factory=lambda: RoleLevelConfig.RoleWeights(
+        strategic_thinking=1.3,
+        cross_functional=1.3,
+        business_acumen=1.2,
+        domain_expertise=1.2,
+        technical_literacy=1.0,
+        hands_on_skills=0.8
+    ))
+    
+    director_vp_weights: RoleWeights = field(default_factory=lambda: RoleLevelConfig.RoleWeights(
+        strategic_thinking=1.0,
+        cross_functional=1.1,
+        business_acumen=1.0,
+        domain_expertise=1.1,
+        technical_literacy=1.2,
+        hands_on_skills=0.9
+    ))
+    
+    senior_ic_weights: RoleWeights = field(default_factory=lambda: RoleLevelConfig.RoleWeights(
+        strategic_thinking=0.8,
+        business_acumen=0.7,
+        cross_functional=0.9,
+        technical_literacy=1.3,
+        hands_on_skills=1.1,
+        domain_expertise=1.4
+    ))
+
+
 # Global configuration instances with type hints
 SCORING_CONFIG: ScoringConfig = ScoringConfig()
 UI_CONFIG: UIConfig = SCORING_CONFIG.ui
 CLASS_WT: ClassificationWeights = ClassificationConfig.get_weights_dict()
 CORE_GAP_THRESHOLDS: GapThresholds = ClassificationConfig.get_gap_thresholds()
+
+# Enhancement configuration instances
+DUAL_TRACK_CONFIG: DualTrackConfig = DualTrackConfig()
+EXPERIENCE_CONFIG: ExperienceLevelConfig = ExperienceLevelConfig()
+CROSS_FUNCTIONAL_CONFIG: CrossFunctionalConfig = CrossFunctionalConfig()
+ROLE_LEVEL_CONFIG: RoleLevelConfig = RoleLevelConfig()
