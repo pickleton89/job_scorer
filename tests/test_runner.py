@@ -14,7 +14,7 @@ from typing import Literal, TypedDict
 # Add parent directory to path to import the script
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-class TestOutput(TypedDict):
+class ScriptExecutionOutput(TypedDict):
     """Type definition for test output dictionary.
 
     Attributes:
@@ -28,7 +28,7 @@ class TestOutput(TypedDict):
     stderr: str
     success: bool
 
-def run_test(script_path: str, test_file: str, version: Literal["v1", "v2"] = "v1") -> TestOutput:
+def run_test(script_path: str, test_file: str, version: Literal["v1", "v2"] = "v1") -> ScriptExecutionOutput:
     """Run a single test case and return the output as a dictionary."""
     try:
         # Run the script and capture output

@@ -3,27 +3,25 @@ Unit tests for enhancement functions in scoring_engine.py
 
 This module tests all four enhancement framework functions:
 1. Dual-track scoring (executive vs IC alignment)
-2. Experience-level calibration  
+2. Experience-level calibration
 3. Cross-functional leadership detection
 4. Role-level weight adjustments
 """
 
-import pytest
-from scoring.scoring_engine import (
-    classify_requirement_type,
-    dual_track_modifier,
-    categorize_skill,
-    experience_level_modifier,
-    assess_cross_functional_complexity,
-    cross_functional_modifier,
-    get_role_weights,
-    matches_proven_strength,
-)
 from scoring.config import (
     DualTrackConfig,
     ExperienceLevelConfig,
-    CrossFunctionalConfig,
     RoleLevelConfig,
+)
+from scoring.scoring_engine import (
+    assess_cross_functional_complexity,
+    categorize_skill,
+    classify_requirement_type,
+    cross_functional_modifier,
+    dual_track_modifier,
+    experience_level_modifier,
+    get_role_weights,
+    matches_proven_strength,
 )
 
 
@@ -276,19 +274,19 @@ class TestIntegrationScenarios:
         """Test executive role with complex cross-functional requirement."""
         # Complex requirement
         req_text = "Lead strategy development across chemistry and clinical teams"
-        
+
         # Classification
         req_type = classify_requirement_type(req_text)
         assert req_type == "executive"
-        
+
         # Dual-track modifier
         dual_mod = dual_track_modifier(req_type, "executive")
         assert dual_mod == 1.0  # Aligned
-        
+
         # Cross-functional complexity
         complexity, _ = assess_cross_functional_complexity(req_text)
         assert complexity in ["medium", "high"]
-        
+
         # Cross-functional modifier
         cf_mod = cross_functional_modifier(complexity, True, True)
         assert cf_mod > 1.0  # Should have bonuses
@@ -297,15 +295,15 @@ class TestIntegrationScenarios:
         """Test IC role with technical requirement."""
         # Technical requirement
         req_text = "Develop novel algorithms for data analysis"
-        
+
         # Classification
         req_type = classify_requirement_type(req_text)
         assert req_type == "ic"
-        
+
         # Skill categorization
         skill_cat = categorize_skill(req_text)
         assert skill_cat == "basic_technical"
-        
+
         # Role weights for senior IC
         weights = get_role_weights("senior_ic")
         # Technical skills should be weighted higher for IC roles
@@ -323,12 +321,12 @@ class TestIntegrationScenarios:
         # Cross-functional requirement matching proven strength
         req_text = "Cross-functional collaboration and integration"
         strengths = ["cross-functional", "integration"]
-        
+
         complexity, _ = assess_cross_functional_complexity(req_text)
         matches = matches_proven_strength(req_text, strengths)
-        
+
         assert matches is True
-        
+
         cf_mod = cross_functional_modifier(complexity, matches, True)
         # Should have proven strength bonus (0.1) and executive bonus (0.05)
         base_mod = 1.15 if complexity == "medium" else (1.3 if complexity == "high" else 1.0)

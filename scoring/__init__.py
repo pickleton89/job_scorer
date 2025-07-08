@@ -35,7 +35,7 @@ from .config import (
 from .data_loader import load_matrix
 
 # --- Core scoring logic ---
-from .scoring_engine import CoreGapSkill, compute_scores, emphasis_modifier
+from .scoring_engine import CoreGapSkill, compute_scores, compute_scores_enhanced, emphasis_modifier
 
 # Define __all__ to explicitly specify the public API
 __all__ = [
@@ -43,6 +43,7 @@ __all__ = [
     'parse_args',
     'load_matrix',
     'compute_scores',
+    'compute_scores_enhanced',
     'emphasis_modifier',
     'CoreGapSkill',
     'CLASS_WT',
@@ -56,4 +57,4 @@ __all__ = [
 ]
 
 # Set version info
-__version__ = "2.0.0"
+__version__ = "3.0.1"

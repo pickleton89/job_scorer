@@ -94,37 +94,37 @@ def parse_args() -> Namespace:
         version="%(prog)s 3.0.0 - Strategic Positioning Enhancement Framework",
         help="Show program's version number and exit",
     )
-    
+
     # Enhancement options
     enhancement_group = parser.add_argument_group("Enhancement Options")
-    
+
     enhancement_group.add_argument(
         "--enable-enhancements",
         action="store_true",
         help="Enable all strategic positioning enhancements for executive roles"
     )
-    
+
     enhancement_group.add_argument(
         "--target-role-type",
         choices=["executive", "ic", "hybrid"],
         default="executive",
         help="Target role type for dual-track scoring (default: executive)"
     )
-    
+
     enhancement_group.add_argument(
         "--years-experience",
         type=int,
         default=20,
         help="Years of professional experience for calibration (default: 20)"
     )
-    
+
     enhancement_group.add_argument(
         "--target-role-level",
         choices=["c_suite", "senior_executive", "director_vp", "senior_ic"],
-        default="senior_executive", 
+        default="senior_executive",
         help="Target role level for calibration (default: senior_executive)"
     )
-    
+
     enhancement_group.add_argument(
         "--proven-strengths",
         nargs="+",

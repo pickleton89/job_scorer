@@ -1,5 +1,0 @@
-Requirement,Classification,SelfScore,Notes
-"Python & R scripting",Essential,4,"Used daily for pipeline automation"
-"TensorFlow / PyTorch",Important,3,"Built two CNN models for histopathology"
-"Containerisation (Docker)",Desirable,2,"Deployed JupyterHub in Docker Swarm"
-"Familiarity with HIPAA compliance",Implicit,1,"Read internal SOPs; no hands-on audits"

@@ -202,7 +202,7 @@ Desirable,Docker containers,2"""
 
                 # Should print version information
                 stdout_output = mock_stdout.getvalue()
-                assert "2.0.0" in stdout_output
+                assert "3.0.0" in stdout_output
 
     def test_keyboard_interrupt_handling(self):
         """Test main function handling of keyboard interrupt (Ctrl+C)."""

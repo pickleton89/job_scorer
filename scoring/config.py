@@ -212,7 +212,7 @@ GapThresholds: TypeAlias = dict[ClassificationName, int]
 @dataclass(frozen=True)
 class DualTrackConfig:
     """Configuration for dual-track (executive vs IC) scoring adjustments."""
-    
+
     # Keyword indicators for role type detection
     executive_indicators: tuple[str, ...] = (
         "strategy", "vision", "roadmap", "portfolio", "pipeline",
@@ -220,13 +220,13 @@ class DualTrackConfig:
         "licensing", "partnerships", "fundraising", "stakeholder",
         "evaluate", "prioritize", "allocate", "approve"
     )
-    
+
     ic_indicators: tuple[str, ...] = (
         "expert", "advanced", "develop", "implement", "optimize",
         "code", "analyze", "model", "design", "execute",
         "novel", "research", "discover", "invent", "pioneer"
     )
-    
+
     # Scoring multipliers
     ic_for_executive_multiplier: float = 0.9
     executive_for_ic_multiplier: float = 0.8
@@ -236,7 +236,7 @@ class DualTrackConfig:
 @dataclass(frozen=True)
 class ExperienceLevelConfig:
     """Configuration for experience-level calibration."""
-    
+
     @dataclass(frozen=True)
     class SkillBaseline:
         """Minimum expected scores by skill category for different experience levels."""
@@ -245,16 +245,16 @@ class ExperienceLevelConfig:
         strategic_thinking: int = 4
         communication: int = 4
         domain_expertise: int = 4
-    
+
     # Baselines by experience level (years)
     senior_executive_baselines: SkillBaseline = field(
         default_factory=lambda: ExperienceLevelConfig.SkillBaseline()
     )
-    
+
     # Penalty/bonus configuration
     below_baseline_penalty: float = 0.7
     above_baseline_bonus_rate: float = 0.1
-    
+
     # Skill category detection keywords
     skill_categories: dict[str, tuple[str, ...]] = field(default_factory=lambda: {
         "basic_technical": ("data", "analysis", "programming", "statistics"),
@@ -268,33 +268,33 @@ class ExperienceLevelConfig:
 @dataclass(frozen=True)
 class CrossFunctionalConfig:
     """Configuration for cross-functional leadership detection and scoring."""
-    
+
     # Indicator categories
     collaboration_indicators: tuple[str, ...] = (
         "cross-functional", "multidisciplinary", "collaborate",
         "coordination", "integrate"
     )
-    
+
     domain_bridging_indicators: tuple[str, ...] = (
         "chemistry", "biology", "clinical", "business", "regulatory",
         "platform development", "molecular biology", "informatics",
         "scientists", "clinicians", "strategists"
     )
-    
+
     translation_indicators: tuple[str, ...] = (
         "interpret", "communicate", "translate", "bridge",
         "explain", "stakeholder", "findings", "results", "insights"
     )
-    
+
     integration_indicators: tuple[str, ...] = (
         "pipeline", "therapeutic", "drug discovery", "target",
         "optimization", "licensing", "partnerships", "evaluation"
     )
-    
+
     # Complexity scoring
     high_complexity_threshold: int = 3  # Number of indicator matches
     medium_complexity_threshold: int = 1
-    
+
     # Multipliers
     high_complexity_multiplier: float = 1.3
     medium_complexity_multiplier: float = 1.15
@@ -305,7 +305,7 @@ class CrossFunctionalConfig:
 @dataclass(frozen=True)
 class RoleLevelConfig:
     """Configuration for role-level calibration."""
-    
+
     @dataclass(frozen=True)
     class RoleWeights:
         """Skill category weights for a specific role level."""
@@ -315,7 +315,7 @@ class RoleLevelConfig:
         technical_literacy: float = 1.0
         hands_on_skills: float = 1.0
         domain_expertise: float = 1.0
-    
+
     # Role level configurations
     c_suite_weights: RoleWeights = field(default_factory=lambda: RoleLevelConfig.RoleWeights(
         strategic_thinking=1.4,
@@ -325,7 +325,7 @@ class RoleLevelConfig:
         hands_on_skills=0.6,
         domain_expertise=1.0
     ))
-    
+
     senior_executive_weights: RoleWeights = field(default_factory=lambda: RoleLevelConfig.RoleWeights(
         strategic_thinking=1.3,
         cross_functional=1.3,
@@ -334,7 +334,7 @@ class RoleLevelConfig:
         technical_literacy=1.0,
         hands_on_skills=0.8
     ))
-    
+
     director_vp_weights: RoleWeights = field(default_factory=lambda: RoleLevelConfig.RoleWeights(
         strategic_thinking=1.0,
         cross_functional=1.1,
@@ -343,7 +343,7 @@ class RoleLevelConfig:
         technical_literacy=1.2,
         hands_on_skills=0.9
     ))
-    
+
     senior_ic_weights: RoleWeights = field(default_factory=lambda: RoleLevelConfig.RoleWeights(
         strategic_thinking=0.8,
         business_acumen=0.7,
