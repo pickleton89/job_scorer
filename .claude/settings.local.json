@@ -4,7 +4,14 @@
       "Bash(find:*)",
       "Bash(mv:*)",
       "mcp__graphiti__add_memory",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "mcp__graphiti__search_memory_nodes",
+      "mcp__graphiti__search_memory_facts",
+      "mcp__graphiti__get_episodes",
+      "Bash(git checkout:*)",
+      "Bash(uv run pytest:*)",
+      "Bash(uv run:*)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   }
