@@ -172,7 +172,7 @@ class TestEnhancedScoring:
     def test_enhanced_scoring_input_validation(self):
         """Test enhanced scoring input validation."""
         with pytest.raises(TypeError):
-            compute_scores_enhanced("not a dataframe", enable_enhancements=True)
+            compute_scores_enhanced("not a dataframe", enable_enhancements=True)  # type: ignore[arg-type]
 
     def test_enhanced_scoring_missing_columns(self):
         """Test enhanced scoring with missing required columns."""

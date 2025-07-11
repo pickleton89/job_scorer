@@ -87,6 +87,7 @@ def run() -> NoReturn:
         sys.exit(1)
 
     try:
+        assert main is not None  # Type narrowing for type checker
         main()
         sys.exit(0)
     except KeyboardInterrupt:

@@ -146,4 +146,9 @@ ignore = [
 "tests/*" = ["E501"]
 "data/*" = ["E501"]
 
+[dependency-groups]
+dev = [
+    "ty>=0.0.1a14",
+]
+
 

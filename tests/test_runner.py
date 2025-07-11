@@ -40,20 +40,20 @@ def run_test(script_path: str, test_file: str, version: Literal["v1", "v2"] = "v
         )
 
         # Parse the output (this is a simple example - adjust based on actual output)
-        output = {
-            "exit_code": 0,
-            "stdout": result.stdout,
-            "stderr": result.stderr,
-            "success": True
-        }
+        output = ScriptExecutionOutput(
+            exit_code=0,
+            stdout=result.stdout,
+            stderr=result.stderr,
+            success=True
+        )
 
     except subprocess.CalledProcessError as e:
-        output = {
-            "exit_code": e.returncode,
-            "stdout": e.stdout,
-            "stderr": e.stderr,
-            "success": False
-        }
+        output = ScriptExecutionOutput(
+            exit_code=e.returncode,
+            stdout=e.stdout,
+            stderr=e.stderr,
+            success=False
+        )
 
     return output
 
