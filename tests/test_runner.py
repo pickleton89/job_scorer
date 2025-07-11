@@ -14,6 +14,7 @@ from typing import Literal, TypedDict
 # Add parent directory to path to import the script
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+
 class ScriptExecutionOutput(TypedDict):
     """Type definition for test output dictionary.
 
@@ -23,44 +24,41 @@ class ScriptExecutionOutput(TypedDict):
         stderr: Standard error from the test
         success: Whether the test was successful
     """
+
     exit_code: int
     stdout: str
     stderr: str
     success: bool
 
-def run_test(script_path: str, test_file: str, version: Literal["v1", "v2"] = "v1") -> ScriptExecutionOutput:
+
+def run_test(
+    script_path: str, test_file: str, version: Literal["v1", "v2"] = "v1"
+) -> ScriptExecutionOutput:
     """Run a single test case and return the output as a dictionary."""
     try:
         # Run the script and capture output
         result = subprocess.run(
-            ["python", script_path, test_file],
-            capture_output=True,
-            text=True,
-            check=True
+            ["python", script_path, test_file], capture_output=True, text=True, check=True
         )
 
         # Parse the output (this is a simple example - adjust based on actual output)
         output = ScriptExecutionOutput(
-            exit_code=0,
-            stdout=result.stdout,
-            stderr=result.stderr,
-            success=True
+            exit_code=0, stdout=result.stdout, stderr=result.stderr, success=True
         )
 
     except subprocess.CalledProcessError as e:
         output = ScriptExecutionOutput(
-            exit_code=e.returncode,
-            stdout=e.stdout,
-            stderr=e.stderr,
-            success=False
+            exit_code=e.returncode, stdout=e.stdout, stderr=e.stderr, success=False
         )
 
     return output
 
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Test runner for job skill matrix scoring")
-    parser.add_argument("--version", choices=["v1", "v2"], default="v1",
-                      help="Which version to test (v1 or v2)")
+    parser.add_argument(
+        "--version", choices=["v1", "v2"], default="v1", help="Which version to test (v1 or v2)"
+    )
     args = parser.parse_args()
 
     # Determine which script to test
@@ -98,7 +96,8 @@ def main() -> None:
             print("Error:")
             print(result["stderr"])
 
-        print("\n" + "="*50 + "\n")
+        print("\n" + "=" * 50 + "\n")
+
 
 if __name__ == "__main__":
     main()

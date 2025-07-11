@@ -86,10 +86,7 @@ CoreGapSkillDict: TypeAlias = dict[
 ]  # name, classification, self_score, threshold
 
 
-def emphasis_modifier(
-    text: str | object,
-    config: ScoringConfig = SCORING_CONFIG
-) -> float:
+def emphasis_modifier(text: str | object, config: ScoringConfig = SCORING_CONFIG) -> float:
     """Determine the emphasis modifier for a requirement text.
 
     Args:
@@ -185,6 +182,7 @@ class ScoreResult(TypedDict, total=False):
         max_points: Maximum possible points (normalized)
         pct_fit: Percentage fit (actual_points / max_points)
     """
+
     core_gap: bool
     core_gap_skills: list[CoreGapSkill]
     actual_points: float
@@ -194,9 +192,9 @@ class ScoreResult(TypedDict, total=False):
 
 # --- Enhancement Modifier Functions ---
 
+
 def classify_requirement_type(
-    text: str,
-    config: DualTrackConfig = DUAL_TRACK_CONFIG
+    text: str, config: DualTrackConfig = DUAL_TRACK_CONFIG
 ) -> Literal["executive", "ic", "hybrid"]:
     """Classify a requirement as executive-focused, IC-focused, or hybrid.
 
@@ -221,9 +219,7 @@ def classify_requirement_type(
 
 
 def dual_track_modifier(
-    requirement_type: str,
-    target_role_type: str,
-    config: DualTrackConfig = DUAL_TRACK_CONFIG
+    requirement_type: str, target_role_type: str, config: DualTrackConfig = DUAL_TRACK_CONFIG
 ) -> float:
     """Calculate scoring modifier based on requirement and role alignment.
 
@@ -247,8 +243,7 @@ def dual_track_modifier(
 
 
 def categorize_skill(
-    skill_text: str,
-    config: ExperienceLevelConfig = EXPERIENCE_CONFIG
+    skill_text: str, config: ExperienceLevelConfig = EXPERIENCE_CONFIG
 ) -> str | None:
     """Categorize a skill based on keyword detection.
 
@@ -272,7 +267,7 @@ def experience_level_modifier(
     skill_category: str | None,
     self_score: int,
     years_experience: int,
-    config: ExperienceLevelConfig = EXPERIENCE_CONFIG
+    config: ExperienceLevelConfig = EXPERIENCE_CONFIG,
 ) -> float:
     """Calculate experience-level appropriate score modifier.
 
@@ -302,8 +297,7 @@ def experience_level_modifier(
 
 
 def assess_cross_functional_complexity(
-    text: str,
-    config: CrossFunctionalConfig = CROSS_FUNCTIONAL_CONFIG
+    text: str, config: CrossFunctionalConfig = CROSS_FUNCTIONAL_CONFIG
 ) -> tuple[str, int]:
     """Assess the cross-functional complexity of a requirement.
 
@@ -322,7 +316,7 @@ def assess_cross_functional_complexity(
         config.collaboration_indicators,
         config.domain_bridging_indicators,
         config.translation_indicators,
-        config.integration_indicators
+        config.integration_indicators,
     ]:
         if any(ind in text_lower for ind in indicator_set):
             indicator_count += 1
@@ -340,7 +334,7 @@ def cross_functional_modifier(
     complexity: str,
     matches_proven_strength: bool,
     is_executive_role: bool,
-    config: CrossFunctionalConfig = CROSS_FUNCTIONAL_CONFIG
+    config: CrossFunctionalConfig = CROSS_FUNCTIONAL_CONFIG,
 ) -> float:
     """Calculate cross-functional leadership scoring modifier.
 
@@ -370,8 +364,7 @@ def cross_functional_modifier(
 
 
 def get_role_weights(
-    target_role_level: str,
-    config: RoleLevelConfig = ROLE_LEVEL_CONFIG
+    target_role_level: str, config: RoleLevelConfig = ROLE_LEVEL_CONFIG
 ) -> RoleLevelConfig.RoleWeights:
     """Get role weights for a specific target role level.
 
@@ -386,16 +379,13 @@ def get_role_weights(
         "c_suite": config.c_suite_weights,
         "senior_executive": config.senior_executive_weights,
         "director_vp": config.director_vp_weights,
-        "senior_ic": config.senior_ic_weights
+        "senior_ic": config.senior_ic_weights,
     }
 
     return weights_map.get(target_role_level, config.senior_executive_weights)
 
 
-def matches_proven_strength(
-    requirement_text: str,
-    proven_strengths: list[str] | None
-) -> bool:
+def matches_proven_strength(requirement_text: str, proven_strengths: list[str] | None) -> bool:
     """Check if a requirement matches any proven strengths.
 
     Args:
@@ -522,7 +512,7 @@ def compute_scores_enhanced(
     target_role_type: str = "executive",
     years_experience: int = 20,
     target_role_level: str = "senior_executive",
-    proven_strengths: list[str] | None = None
+    proven_strengths: list[str] | None = None,
 ) -> ScoreResult:
     """Compute scores with optional strategic positioning enhancements.
 
@@ -575,25 +565,19 @@ def compute_scores_enhanced(
 
     # Apply Enhancement 1: Dual-Track Scoring
     df["ReqType"] = df[req_col].apply(lambda x: classify_requirement_type(str(x)))
-    df["DualTrackMod"] = df["ReqType"].apply(
-        lambda x: dual_track_modifier(x, target_role_type)
-    )
+    df["DualTrackMod"] = df["ReqType"].apply(lambda x: dual_track_modifier(x, target_role_type))
 
     # Apply Enhancement 2: Experience-Level Scoring
     df["SkillCategory"] = df[req_col].apply(lambda x: categorize_skill(str(x)))
     df["ExpLevelMod"] = df.apply(
         lambda row: experience_level_modifier(
-            row["SkillCategory"],
-            int(row["SelfScore"]),
-            years_experience
+            row["SkillCategory"], int(row["SelfScore"]), years_experience
         ),
-        axis=1
+        axis=1,
     )
 
     # Apply Enhancement 3: Cross-Functional Leadership
-    complexity_results = df[req_col].apply(
-        lambda x: assess_cross_functional_complexity(str(x))
-    )
+    complexity_results = df[req_col].apply(lambda x: assess_cross_functional_complexity(str(x)))
     df["CrossFuncComplexity"] = complexity_results.apply(lambda x: x[0])
     df["IndicatorCount"] = complexity_results.apply(lambda x: x[1])
 
@@ -602,11 +586,9 @@ def compute_scores_enhanced(
     )
     df["CrossFuncMod"] = df.apply(
         lambda row: cross_functional_modifier(
-            row["CrossFuncComplexity"],
-            row["MatchesStrength"],
-            target_role_type == "executive"
+            row["CrossFuncComplexity"], row["MatchesStrength"], target_role_type == "executive"
         ),
-        axis=1
+        axis=1,
     )
 
     # Apply Enhancement 4: Role-Level Calibration
@@ -617,13 +599,13 @@ def compute_scores_enhanced(
 
     # Calculate enhanced raw scores
     df["RowScoreRaw"] = (
-        df["ClassWt"] *
-        (1 + df["EmphMod"]) *
-        df["SelfScore"] *
-        df["DualTrackMod"] *
-        df["ExpLevelMod"] *
-        df["CrossFuncMod"] *
-        df["RoleLevelMod"]
+        df["ClassWt"]
+        * (1 + df["EmphMod"])
+        * df["SelfScore"]
+        * df["DualTrackMod"]
+        * df["ExpLevelMod"]
+        * df["CrossFuncMod"]
+        * df["RoleLevelMod"]
     )
 
     # Apply bonus capping (similar to standard scoring)

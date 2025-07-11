@@ -140,15 +140,18 @@ class TestEmphasisModifier:
             emphasis_modifier_high=0.3,
             emphasis_modifier_low=-0.3,
             emphasis_indicators=EmphasisIndicators(
-                high_emphasis=("custom_high",),
-                low_emphasis=("custom_low",)
-            )
+                high_emphasis=("custom_high",), low_emphasis=("custom_low",)
+            ),
         )
 
         assert emphasis_modifier("custom_high requirement", custom_config) == 0.3
         assert emphasis_modifier("custom_low requirement", custom_config) == -0.3
-        assert emphasis_modifier("expert requirement", custom_config) == 0.0  # Default keywords don't apply
-        assert emphasis_modifier("basic requirement", custom_config) == 0.0   # Default keywords don't apply
+        assert (
+            emphasis_modifier("expert requirement", custom_config) == 0.0
+        )  # Default keywords don't apply
+        assert (
+            emphasis_modifier("basic requirement", custom_config) == 0.0
+        )  # Default keywords don't apply
 
     def test_real_world_examples(self):
         """Test with realistic job requirement examples."""
@@ -168,7 +171,9 @@ class TestEmphasisModifier:
         assert emphasis_modifier("Bachelor's degree in Computer Science") == 0.0
         assert emphasis_modifier("Experience with version control systems") == 0.0
         assert emphasis_modifier("Ability to work in team environments") == 0.0
-        assert emphasis_modifier("Strong problem-solving skills") == 0.5  # "strong" is high emphasis
+        assert (
+            emphasis_modifier("Strong problem-solving skills") == 0.5
+        )  # "strong" is high emphasis
 
     def test_edge_cases_with_punctuation(self):
         """Test emphasis detection with various punctuation."""

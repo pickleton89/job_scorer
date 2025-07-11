@@ -74,8 +74,7 @@ class TestDualTrackScoring:
     def test_dual_track_custom_config(self):
         """Test dual-track with custom configuration."""
         custom_config = DualTrackConfig(
-            ic_for_executive_multiplier=0.85,
-            executive_for_ic_multiplier=0.75
+            ic_for_executive_multiplier=0.85, executive_for_ic_multiplier=0.75
         )
         modifier = dual_track_modifier("ic", "executive", custom_config)
         assert modifier == 0.85
@@ -137,8 +136,7 @@ class TestExperienceLevelScoring:
         """Test experience level with custom configuration."""
         custom_baseline = ExperienceLevelConfig.SkillBaseline(leadership=5)
         custom_config = ExperienceLevelConfig(
-            senior_executive_baselines=custom_baseline,
-            below_baseline_penalty=0.6
+            senior_executive_baselines=custom_baseline, below_baseline_penalty=0.6
         )
         modifier = experience_level_modifier("leadership", 3, 20, custom_config)
         assert modifier == 0.6

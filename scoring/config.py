@@ -75,15 +75,41 @@ class EmphasisIndicators(NamedTuple):
         high_emphasis: Tuple of keywords indicating high emphasis requirements
         low_emphasis: Tuple of keywords indicating low emphasis requirements
     """
+
     high_emphasis: tuple[str, ...] = (
-        "expert", "extensive", "strong", "proven", "deep", "comprehensive",
-        "advanced", "thorough", "significant", "considerable", "demonstrated",
-        "extensively", "expertise", "mastery", "proficiency", "fluent"
+        "expert",
+        "extensive",
+        "strong",
+        "proven",
+        "deep",
+        "comprehensive",
+        "advanced",
+        "thorough",
+        "significant",
+        "considerable",
+        "demonstrated",
+        "extensively",
+        "expertise",
+        "mastery",
+        "proficiency",
+        "fluent",
     )
     low_emphasis: tuple[str, ...] = (
-        "basic", "familiarity", "familiar", "awareness", "aware", "some",
-        "knowledge of", "understanding of", "exposure to", "introduction",
-        "fundamental", "beginner", "novice", "entry-level", "basic understanding"
+        "basic",
+        "familiarity",
+        "familiar",
+        "awareness",
+        "aware",
+        "some",
+        "knowledge of",
+        "understanding of",
+        "exposure to",
+        "introduction",
+        "fundamental",
+        "beginner",
+        "novice",
+        "entry-level",
+        "basic understanding",
     )
 
 
@@ -99,6 +125,7 @@ class UIConfig:
         decimal_places: Number of decimal places for numeric output
         pct_decimal_places: Number of decimal places for percentages
     """
+
     separator_length: int = 50
     default_indent: int = 2
     max_line_width: int = 80
@@ -119,6 +146,7 @@ class ScoringConfig:
         emphasis_indicators: Keywords for detecting emphasis in requirement text.
         ui: UI-related configuration
     """
+
     max_self_score: int = 5
     bonus_cap_percentage: float = 0.25
     emphasis_modifier_high: float = 0.5
@@ -145,6 +173,7 @@ class ClassificationConfig:
         weight: The weight multiplier for this classification
         gap_threshold: The minimum score below which this is considered a gap
     """
+
     name: ClassificationName
     weight: float
     gap_threshold: int = 0  # Default: no gap detection
@@ -154,6 +183,7 @@ class ClassificationConfig:
     IMPORTANT: ClassVar[ClassificationConfig]
     DESIRABLE: ClassVar[ClassificationConfig]
     IMPLICIT: ClassVar[ClassificationConfig]
+
     @classmethod
     def get_all(cls) -> list[ClassificationConfig]:
         """Get all classification configurations.
@@ -186,27 +216,28 @@ class ClassificationConfig:
 ClassificationConfig.ESSENTIAL = ClassificationConfig(
     name="Essential",
     weight=3.0,
-    gap_threshold=2  # Score <= 2 is a gap
+    gap_threshold=2,  # Score <= 2 is a gap
 )
 ClassificationConfig.IMPORTANT = ClassificationConfig(
     name="Important",
     weight=2.0,
-    gap_threshold=1  # Score <= 1 is a gap
+    gap_threshold=1,  # Score <= 1 is a gap
 )
 ClassificationConfig.DESIRABLE = ClassificationConfig(
     name="Desirable",
     weight=1.0,
-    gap_threshold=0  # No gaps
+    gap_threshold=0,  # No gaps
 )
 ClassificationConfig.IMPLICIT = ClassificationConfig(
     name="Implicit",
     weight=0.5,
-    gap_threshold=0  # No gaps
+    gap_threshold=0,  # No gaps
 )
 
 # Type aliases for configuration dictionaries
 ClassificationWeights: TypeAlias = dict[ClassificationName, float]
 GapThresholds: TypeAlias = dict[ClassificationName, int]
+
 
 # Enhancement Configuration Classes
 @dataclass(frozen=True)
@@ -215,16 +246,42 @@ class DualTrackConfig:
 
     # Keyword indicators for role type detection
     executive_indicators: tuple[str, ...] = (
-        "strategy", "vision", "roadmap", "portfolio", "pipeline",
-        "lead", "manage", "direct", "oversee", "build team",
-        "licensing", "partnerships", "fundraising", "stakeholder",
-        "evaluate", "prioritize", "allocate", "approve"
+        "strategy",
+        "vision",
+        "roadmap",
+        "portfolio",
+        "pipeline",
+        "lead",
+        "manage",
+        "direct",
+        "oversee",
+        "build team",
+        "licensing",
+        "partnerships",
+        "fundraising",
+        "stakeholder",
+        "evaluate",
+        "prioritize",
+        "allocate",
+        "approve",
     )
 
     ic_indicators: tuple[str, ...] = (
-        "expert", "advanced", "develop", "implement", "optimize",
-        "code", "analyze", "model", "design", "execute",
-        "novel", "research", "discover", "invent", "pioneer"
+        "expert",
+        "advanced",
+        "develop",
+        "implement",
+        "optimize",
+        "code",
+        "analyze",
+        "model",
+        "design",
+        "execute",
+        "novel",
+        "research",
+        "discover",
+        "invent",
+        "pioneer",
     )
 
     # Scoring multipliers
@@ -240,6 +297,7 @@ class ExperienceLevelConfig:
     @dataclass(frozen=True)
     class SkillBaseline:
         """Minimum expected scores by skill category for different experience levels."""
+
         basic_technical: int = 3
         leadership: int = 4
         strategic_thinking: int = 4
@@ -256,13 +314,15 @@ class ExperienceLevelConfig:
     above_baseline_bonus_rate: float = 0.1
 
     # Skill category detection keywords
-    skill_categories: dict[str, tuple[str, ...]] = field(default_factory=lambda: {
-        "basic_technical": ("data", "analysis", "programming", "statistics"),
-        "leadership": ("lead", "manage", "team", "mentor", "coach"),
-        "strategic_thinking": ("strategy", "vision", "roadmap", "planning"),
-        "communication": ("present", "communicate", "stakeholder", "influence"),
-        "domain_expertise": ("drug", "discovery", "clinical", "therapeutic", "biotech")
-    })
+    skill_categories: dict[str, tuple[str, ...]] = field(
+        default_factory=lambda: {
+            "basic_technical": ("data", "analysis", "programming", "statistics"),
+            "leadership": ("lead", "manage", "team", "mentor", "coach"),
+            "strategic_thinking": ("strategy", "vision", "roadmap", "planning"),
+            "communication": ("present", "communicate", "stakeholder", "influence"),
+            "domain_expertise": ("drug", "discovery", "clinical", "therapeutic", "biotech"),
+        }
+    )
 
 
 @dataclass(frozen=True)
@@ -271,24 +331,48 @@ class CrossFunctionalConfig:
 
     # Indicator categories
     collaboration_indicators: tuple[str, ...] = (
-        "cross-functional", "multidisciplinary", "collaborate",
-        "coordination", "integrate"
+        "cross-functional",
+        "multidisciplinary",
+        "collaborate",
+        "coordination",
+        "integrate",
     )
 
     domain_bridging_indicators: tuple[str, ...] = (
-        "chemistry", "biology", "clinical", "business", "regulatory",
-        "platform development", "molecular biology", "informatics",
-        "scientists", "clinicians", "strategists"
+        "chemistry",
+        "biology",
+        "clinical",
+        "business",
+        "regulatory",
+        "platform development",
+        "molecular biology",
+        "informatics",
+        "scientists",
+        "clinicians",
+        "strategists",
     )
 
     translation_indicators: tuple[str, ...] = (
-        "interpret", "communicate", "translate", "bridge",
-        "explain", "stakeholder", "findings", "results", "insights"
+        "interpret",
+        "communicate",
+        "translate",
+        "bridge",
+        "explain",
+        "stakeholder",
+        "findings",
+        "results",
+        "insights",
     )
 
     integration_indicators: tuple[str, ...] = (
-        "pipeline", "therapeutic", "drug discovery", "target",
-        "optimization", "licensing", "partnerships", "evaluation"
+        "pipeline",
+        "therapeutic",
+        "drug discovery",
+        "target",
+        "optimization",
+        "licensing",
+        "partnerships",
+        "evaluation",
     )
 
     # Complexity scoring
@@ -309,6 +393,7 @@ class RoleLevelConfig:
     @dataclass(frozen=True)
     class RoleWeights:
         """Skill category weights for a specific role level."""
+
         strategic_thinking: float = 1.0
         business_acumen: float = 1.0
         cross_functional: float = 1.0
@@ -317,41 +402,49 @@ class RoleLevelConfig:
         domain_expertise: float = 1.0
 
     # Role level configurations
-    c_suite_weights: RoleWeights = field(default_factory=lambda: RoleLevelConfig.RoleWeights(
-        strategic_thinking=1.4,
-        business_acumen=1.3,
-        cross_functional=1.2,
-        technical_literacy=0.8,
-        hands_on_skills=0.6,
-        domain_expertise=1.0
-    ))
+    c_suite_weights: RoleWeights = field(
+        default_factory=lambda: RoleLevelConfig.RoleWeights(
+            strategic_thinking=1.4,
+            business_acumen=1.3,
+            cross_functional=1.2,
+            technical_literacy=0.8,
+            hands_on_skills=0.6,
+            domain_expertise=1.0,
+        )
+    )
 
-    senior_executive_weights: RoleWeights = field(default_factory=lambda: RoleLevelConfig.RoleWeights(
-        strategic_thinking=1.3,
-        cross_functional=1.3,
-        business_acumen=1.2,
-        domain_expertise=1.2,
-        technical_literacy=1.0,
-        hands_on_skills=0.8
-    ))
+    senior_executive_weights: RoleWeights = field(
+        default_factory=lambda: RoleLevelConfig.RoleWeights(
+            strategic_thinking=1.3,
+            cross_functional=1.3,
+            business_acumen=1.2,
+            domain_expertise=1.2,
+            technical_literacy=1.0,
+            hands_on_skills=0.8,
+        )
+    )
 
-    director_vp_weights: RoleWeights = field(default_factory=lambda: RoleLevelConfig.RoleWeights(
-        strategic_thinking=1.0,
-        cross_functional=1.1,
-        business_acumen=1.0,
-        domain_expertise=1.1,
-        technical_literacy=1.2,
-        hands_on_skills=0.9
-    ))
+    director_vp_weights: RoleWeights = field(
+        default_factory=lambda: RoleLevelConfig.RoleWeights(
+            strategic_thinking=1.0,
+            cross_functional=1.1,
+            business_acumen=1.0,
+            domain_expertise=1.1,
+            technical_literacy=1.2,
+            hands_on_skills=0.9,
+        )
+    )
 
-    senior_ic_weights: RoleWeights = field(default_factory=lambda: RoleLevelConfig.RoleWeights(
-        strategic_thinking=0.8,
-        business_acumen=0.7,
-        cross_functional=0.9,
-        technical_literacy=1.3,
-        hands_on_skills=1.1,
-        domain_expertise=1.4
-    ))
+    senior_ic_weights: RoleWeights = field(
+        default_factory=lambda: RoleLevelConfig.RoleWeights(
+            strategic_thinking=0.8,
+            business_acumen=0.7,
+            cross_functional=0.9,
+            technical_literacy=1.3,
+            hands_on_skills=1.1,
+            domain_expertise=1.4,
+        )
+    )
 
 
 # Global configuration instances with type hints

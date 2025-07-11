@@ -83,11 +83,7 @@ def parse_args() -> Namespace:
         ),
     )
 
-    parser.add_argument(
-        "csv_path",
-        type=Path,
-        help="Path to CSV file containing skill matrix data"
-    )
+    parser.add_argument("csv_path", type=Path, help="Path to CSV file containing skill matrix data")
     parser.add_argument(
         "--version",
         action="version",
@@ -101,34 +97,34 @@ def parse_args() -> Namespace:
     enhancement_group.add_argument(
         "--enable-enhancements",
         action="store_true",
-        help="Enable all strategic positioning enhancements for executive roles"
+        help="Enable all strategic positioning enhancements for executive roles",
     )
 
     enhancement_group.add_argument(
         "--target-role-type",
         choices=["executive", "ic", "hybrid"],
         default="executive",
-        help="Target role type for dual-track scoring (default: executive)"
+        help="Target role type for dual-track scoring (default: executive)",
     )
 
     enhancement_group.add_argument(
         "--years-experience",
         type=int,
         default=20,
-        help="Years of professional experience for calibration (default: 20)"
+        help="Years of professional experience for calibration (default: 20)",
     )
 
     enhancement_group.add_argument(
         "--target-role-level",
         choices=["c_suite", "senior_executive", "director_vp", "senior_ic"],
         default="senior_executive",
-        help="Target role level for calibration (default: senior_executive)"
+        help="Target role level for calibration (default: senior_executive)",
     )
 
     enhancement_group.add_argument(
         "--proven-strengths",
         nargs="+",
-        help="List of proven cross-functional strengths (e.g., 'cross-functional' 'bioinformatics')"
+        help="List of proven cross-functional strengths (e.g., 'cross-functional' 'bioinformatics')",
     )
 
     try:
@@ -191,7 +187,7 @@ def main() -> None:
                 target_role_type=args.target_role_type,
                 years_experience=args.years_experience,
                 target_role_level=args.target_role_level,
-                proven_strengths=args.proven_strengths
+                proven_strengths=args.proven_strengths,
             )
         else:
             metrics = compute_scores(df_raw)
@@ -212,7 +208,11 @@ def main() -> None:
     print(f"\n{separator}")
     if args.enable_enhancements:
         print("ENHANCED STRATEGIC POSITIONING RESULTS".center(UI_CONFIG.separator_length))
-        print(f"Role Type: {args.target_role_type.title()} | Experience: {args.years_experience}y | Level: {args.target_role_level.replace('_', ' ').title()}".center(UI_CONFIG.separator_length))
+        print(
+            f"Role Type: {args.target_role_type.title()} | Experience: {args.years_experience}y | Level: {args.target_role_level.replace('_', ' ').title()}".center(
+                UI_CONFIG.separator_length
+            )
+        )
         if args.proven_strengths:
             strengths_text = f"Proven Strengths: {', '.join(args.proven_strengths)}"
             print(strengths_text.center(UI_CONFIG.separator_length))

@@ -39,21 +39,21 @@ from .scoring_engine import CoreGapSkill, compute_scores, compute_scores_enhance
 
 # Define __all__ to explicitly specify the public API
 __all__ = [
-    'main',
-    'parse_args',
-    'load_matrix',
-    'compute_scores',
-    'compute_scores_enhanced',
-    'emphasis_modifier',
-    'CoreGapSkill',
-    'CLASS_WT',
-    'CORE_GAP_THRESHOLDS',
-    'SCORING_CONFIG',
-    'UI_CONFIG',
-    'ClassificationConfig',
-    'ScoringConfig',
-    'UIConfig',
-    'EmphasisIndicators'
+    "main",
+    "parse_args",
+    "load_matrix",
+    "compute_scores",
+    "compute_scores_enhanced",
+    "emphasis_modifier",
+    "CoreGapSkill",
+    "CLASS_WT",
+    "CORE_GAP_THRESHOLDS",
+    "SCORING_CONFIG",
+    "UI_CONFIG",
+    "ClassificationConfig",
+    "ScoringConfig",
+    "UIConfig",
+    "EmphasisIndicators",
 ]
 
 # Set version info

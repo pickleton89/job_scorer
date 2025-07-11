@@ -49,9 +49,7 @@ def load_matrix(path: Path) -> pd.DataFrame:
         raise ValueError(f"CSV missing required columns: {missing}")
 
     df["Weight"] = pd.to_numeric(df["Weight"], errors="coerce").fillna(0).astype(int)
-    df["SelfScore"] = (
-        pd.to_numeric(df["SelfScore"], errors="coerce").fillna(0).astype(int)
-    )
+    df["SelfScore"] = pd.to_numeric(df["SelfScore"], errors="coerce").fillna(0).astype(int)
     return df
 
 
@@ -119,7 +117,9 @@ def compute_scores(df: pd.DataFrame, effective_total_weight: int) -> dict:
     core_gap_skills = []
     if core_gap:
         # Get the requirement/skill name for each core gap
-        req_col = [col for col in df.columns if "requirement" in col.lower() or "skill" in col.lower()][0]
+        req_col = [
+            col for col in df.columns if "requirement" in col.lower() or "skill" in col.lower()
+        ][0]
         core_gap_skills = df.loc[core_gap_mask, req_col].tolist()
 
     df["WeightedScore"] = df["Weight"] * df["SelfScore"]
@@ -143,12 +143,8 @@ def compute_scores(df: pd.DataFrame, effective_total_weight: int) -> dict:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Compute fit score from a skill-matrix CSV."
-    )
-    parser.add_argument(
-        "csv", type=Path, help="Path to CSV with Weight & SelfScore columns"
-    )
+    parser = argparse.ArgumentParser(description="Compute fit score from a skill-matrix CSV.")
+    parser.add_argument("csv", type=Path, help="Path to CSV with Weight & SelfScore columns")
     parser.add_argument(
         "--cap",
         type=float,
@@ -169,13 +165,11 @@ def main() -> None:
     # ----- Report -----
     pd.set_option("display.max_rows", None)
     print("\nProcessed Matrix (after cap):")
-    print(
-        df_eff[[c for c in df_eff.columns if c != "WeightedScore"] + ["WeightedScore"]]
-    )
+    print(df_eff[[c for c in df_eff.columns if c != "WeightedScore"] + ["WeightedScore"]])
 
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("SCORECARD SUMMARY")
-    print("="*50)
+    print("=" * 50)
 
     # Core gap assessment
     core_gap_status = "YES" if metrics["core_gap"] else "NO"
@@ -202,12 +196,12 @@ def main() -> None:
 
     fit_guidance = (
         "   ✓  Excellent overall fit → Apply immediately, emphasize strengths"
-        if pct >= 0.80 else
-        "   ✓  Good fit; minor gaps → Apply; line up examples or quick up-skilling"
-        if pct >= 0.65 else
-        "   ⚠️  Possible fit; several gaps → Decide whether to apply now or build skills first"
-        if pct >= 0.50 else
-        "   ⚠️  Significant gaps → Up-skill before investing in an application"
+        if pct >= 0.80
+        else "   ✓  Good fit; minor gaps → Apply; line up examples or quick up-skilling"
+        if pct >= 0.65
+        else "   ⚠️  Possible fit; several gaps → Decide whether to apply now or build skills first"
+        if pct >= 0.50
+        else "   ⚠️  Significant gaps → Up-skill before investing in an application"
     )
     print(fit_guidance)
 
@@ -243,9 +237,9 @@ def main() -> None:
         print(f"\n4. Verdict          : {verdict}")
 
     # Add next steps guidance
-    print("\n" + "-"*50)
+    print("\n" + "-" * 50)
     print("RECOMMENDED NEXT STEPS")
-    print("-"*50)
+    print("-" * 50)
 
     if metrics["core_gap"]:
         print("1. Focus on closing the core gap skills listed above.")
@@ -267,7 +261,6 @@ def main() -> None:
     # Add reminder about self-scoring
     print("\nReminder: Use concrete metrics (projects, KPIs) to justify your self-scores.")
     print("Run this tool again after improving skills or gathering better evidence.")
-
 
 
 if __name__ == "__main__":

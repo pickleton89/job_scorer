@@ -38,7 +38,10 @@ except ImportError:
             from cli import main
         except ImportError as e:
             print(f"Error: Could not import required modules: {e}", file=sys.stderr)
-            print("Please ensure you're running from the correct directory or have installed the package.", file=sys.stderr)
+            print(
+                "Please ensure you're running from the correct directory or have installed the package.",
+                file=sys.stderr,
+            )
             sys.exit(1)
 
 

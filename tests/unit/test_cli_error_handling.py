@@ -24,16 +24,15 @@ class TestMainFunctionErrorHandling:
         from scoring.cli import main
 
         # Mock sys.argv to simulate command line arguments
-        test_args = ['scoring_v2.py', '/non/existent/file.csv']
+        test_args = ["scoring_v2.py", "/non/existent/file.csv"]
 
-        with patch('sys.argv', test_args):
-            with patch('sys.stderr', new_callable=io.StringIO) as mock_stderr:
+        with patch("sys.argv", test_args):
+            with patch("sys.stderr", new_callable=io.StringIO) as mock_stderr:
                 with pytest.raises(SystemExit) as exc_info:
                     main()
 
                 # Should exit with code 1
                 assert exc_info.value.code == 1  # type: ignore[attr-defined]
-
 
                 # Should print error message to stderr
                 stderr_output = mock_stderr.getvalue()
@@ -45,14 +44,16 @@ class TestMainFunctionErrorHandling:
         from scoring.cli import main
 
         # Create an empty CSV file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False, encoding='utf-8') as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".csv", delete=False, encoding="utf-8"
+        ) as f:
             temp_path = f.name
 
         try:
-            test_args = ['scoring_v2.py', temp_path]
+            test_args = ["scoring_v2.py", temp_path]
 
-            with patch('sys.argv', test_args):
-                with patch('sys.stderr', new_callable=io.StringIO) as mock_stderr:
+            with patch("sys.argv", test_args):
+                with patch("sys.stderr", new_callable=io.StringIO) as mock_stderr:
                     with pytest.raises(SystemExit) as exc_info:
                         main()
 
@@ -74,15 +75,15 @@ class TestMainFunctionErrorHandling:
         csv_content = """WrongColumn,AnotherWrongColumn
 value1,value2"""
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(csv_content)
             temp_path = f.name
 
         try:
-            test_args = ['scoring_v2.py', temp_path]
+            test_args = ["scoring_v2.py", temp_path]
 
-            with patch('sys.argv', test_args):
-                with patch('sys.stderr', new_callable=io.StringIO) as mock_stderr:
+            with patch("sys.argv", test_args):
+                with patch("sys.stderr", new_callable=io.StringIO) as mock_stderr:
                     with pytest.raises(SystemExit) as exc_info:
                         main()
 
@@ -105,19 +106,19 @@ value1,value2"""
         csv_content = """Classification,Requirement,SelfScore
 Essential,Python programming,4"""
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(csv_content)
             temp_path = f.name
 
         try:
-            test_args = ['scoring_v2.py', temp_path]
+            test_args = ["scoring_v2.py", temp_path]
 
             # Mock compute_scores to raise an exception
-            with patch('scoring.cli.compute_scores') as mock_compute:
+            with patch("scoring.cli.compute_scores") as mock_compute:
                 mock_compute.side_effect = Exception("Simulated scoring error")
 
-                with patch('sys.argv', test_args):
-                    with patch('sys.stderr', new_callable=io.StringIO) as mock_stderr:
+                with patch("sys.argv", test_args):
+                    with patch("sys.stderr", new_callable=io.StringIO) as mock_stderr:
                         with pytest.raises(SystemExit) as exc_info:
                             main()
 
@@ -142,15 +143,15 @@ Essential,Python programming,4
 Important,SQL databases,3
 Desirable,Docker containers,2"""
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(csv_content)
             temp_path = f.name
 
         try:
-            test_args = ['scoring_v2.py', temp_path]
+            test_args = ["scoring_v2.py", temp_path]
 
-            with patch('sys.argv', test_args):
-                with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
+            with patch("sys.argv", test_args):
+                with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
                     # Should not raise SystemExit for successful execution
                     try:
                         main()
@@ -172,10 +173,10 @@ Desirable,Docker containers,2"""
         """Test main function handling of --help flag."""
         from scoring.cli import main
 
-        test_args = ['scoring_v2.py', '--help']
+        test_args = ["scoring_v2.py", "--help"]
 
-        with patch('sys.argv', test_args):
-            with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
+        with patch("sys.argv", test_args):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
                 with pytest.raises(SystemExit) as exc_info:
                     main()
 
@@ -190,10 +191,10 @@ Desirable,Docker containers,2"""
         """Test main function handling of --version flag."""
         from scoring.cli import main
 
-        test_args = ['scoring_v2.py', '--version']
+        test_args = ["scoring_v2.py", "--version"]
 
-        with patch('sys.argv', test_args):
-            with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
+        with patch("sys.argv", test_args):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
                 with pytest.raises(SystemExit) as exc_info:
                     main()
 
@@ -212,19 +213,19 @@ Desirable,Docker containers,2"""
         csv_content = """Classification,Requirement,SelfScore
 Essential,Python programming,4"""
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(csv_content)
             temp_path = f.name
 
         try:
-            test_args = ['scoring_v2.py', temp_path]
+            test_args = ["scoring_v2.py", temp_path]
 
             # Mock load_matrix to raise KeyboardInterrupt
-            with patch('scoring.cli.load_matrix') as mock_load:
+            with patch("scoring.cli.load_matrix") as mock_load:
                 mock_load.side_effect = KeyboardInterrupt()
 
-                with patch('sys.argv', test_args):
-                    with patch('builtins.print'):
+                with patch("sys.argv", test_args):
+                    with patch("builtins.print"):
                         # The main function should handle KeyboardInterrupt gracefully
                         try:
                             main()
@@ -247,10 +248,10 @@ class TestArgumentParsing:
         """Test handling of missing CSV file argument."""
         from scoring.cli import main
 
-        test_args = ['scoring_v2.py']  # No CSV file provided
+        test_args = ["scoring_v2.py"]  # No CSV file provided
 
-        with patch('sys.argv', test_args):
-            with patch('sys.stderr', new_callable=io.StringIO) as mock_stderr:
+        with patch("sys.argv", test_args):
+            with patch("sys.stderr", new_callable=io.StringIO) as mock_stderr:
                 with pytest.raises(SystemExit) as exc_info:
                     main()
 
@@ -265,10 +266,10 @@ class TestArgumentParsing:
         """Test handling of invalid command line arguments."""
         from scoring.cli import main
 
-        test_args = ['scoring_v2.py', '--invalid-flag', 'file.csv']
+        test_args = ["scoring_v2.py", "--invalid-flag", "file.csv"]
 
-        with patch('sys.argv', test_args):
-            with patch('sys.stderr', new_callable=io.StringIO) as mock_stderr:
+        with patch("sys.argv", test_args):
+            with patch("sys.stderr", new_callable=io.StringIO) as mock_stderr:
                 with pytest.raises(SystemExit) as exc_info:
                     main()
 

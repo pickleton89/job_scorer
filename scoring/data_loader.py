@@ -237,7 +237,9 @@ def load_matrix(path: str | Path) -> DataFrame:
     try:
         df["ClassWt"] = df["Classification"].map(CLASS_WT).fillna(0.0)
         df["EmphMod"] = df["Requirement"].apply(
-            lambda text: emphasis_modifier(cast(str, text) if pd.notna(text) else "", SCORING_CONFIG)
+            lambda text: emphasis_modifier(
+                cast(str, text) if pd.notna(text) else "", SCORING_CONFIG
+            )
         )
         df["Weight"] = df["ClassWt"]  # For backward compatibility
     except Exception as e:

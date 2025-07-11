@@ -32,7 +32,7 @@ Important,SQL databases,3
 Desirable,Docker containers,2
 Implicit,Team collaboration,5"""
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(csv_content)
             temp_path = f.name
 
@@ -41,22 +41,22 @@ Implicit,Team collaboration,5"""
 
             # Verify basic structure
             assert len(df) == 4
-            assert 'Classification' in df.columns
-            assert 'Requirement' in df.columns
-            assert 'SelfScore' in df.columns
-            assert 'ClassWt' in df.columns
-            assert 'EmphMod' in df.columns
-            assert 'Weight' in df.columns
+            assert "Classification" in df.columns
+            assert "Requirement" in df.columns
+            assert "SelfScore" in df.columns
+            assert "ClassWt" in df.columns
+            assert "EmphMod" in df.columns
+            assert "Weight" in df.columns
 
             # Verify data types
-            assert df['SelfScore'].dtype == 'int64'
-            assert df['ClassWt'].dtype == 'float64'
-            assert df['EmphMod'].dtype == 'float64'
+            assert df["SelfScore"].dtype == "int64"
+            assert df["ClassWt"].dtype == "float64"
+            assert df["EmphMod"].dtype == "float64"
 
             # Verify specific values
-            assert df.iloc[0]['Classification'] == 'Essential'
-            assert df.iloc[0]['SelfScore'] == 4
-            assert df.iloc[0]['ClassWt'] == 3.0  # Essential weight
+            assert df.iloc[0]["Classification"] == "Essential"
+            assert df.iloc[0]["SelfScore"] == 4
+            assert df.iloc[0]["ClassWt"] == 3.0  # Essential weight
 
         finally:
             os.unlink(temp_path)
@@ -76,7 +76,7 @@ Implicit,Team collaboration,5"""
 
         # Test with list (invalid type)
         with pytest.raises(TypeError, match="Expected str or Path"):
-            load_matrix(['not', 'a', 'path'])  # type: ignore[arg-type]
+            load_matrix(["not", "a", "path"])  # type: ignore[arg-type]
 
     def test_directory_path_error(self):
         """Test ValueError when path points to a directory."""
@@ -86,7 +86,7 @@ Implicit,Team collaboration,5"""
 
     def test_empty_csv_file_error(self):
         """Test EmptyDataError for empty CSV file."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             # Write nothing to create empty file
             temp_path = f.name
 
@@ -101,7 +101,7 @@ Implicit,Team collaboration,5"""
         # Create a file with invalid CSV content that pandas can read but has missing columns
         invalid_content = "This is not a CSV file\nJust some random text"
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(invalid_content)
             temp_path = f.name
 
@@ -119,7 +119,7 @@ Implicit,Team collaboration,5"""
 Python programming,4
 SQL databases,3"""
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(csv_content)
             temp_path = f.name
 
@@ -136,7 +136,7 @@ SQL databases,3"""
 4
 3"""
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(csv_content)
             temp_path = f.name
 
@@ -153,12 +153,14 @@ Essential,Python programming,4
 InvalidClass,SQL databases,3
 Important,Docker containers,2"""
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(csv_content)
             temp_path = f.name
 
         try:
-            with pytest.raises(ValueError, match="Invalid Classification values found: InvalidClass"):
+            with pytest.raises(
+                ValueError, match="Invalid Classification values found: InvalidClass"
+            ):
                 load_matrix(Path(temp_path))
         finally:
             os.unlink(temp_path)
@@ -170,7 +172,7 @@ Essential,Python programming,4
 BadClass1,SQL databases,3
 BadClass2,Docker containers,2"""
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(csv_content)
             temp_path = f.name
 
@@ -187,7 +189,7 @@ Essential,Python programming,4
 Important,SQL databases,invalid
 Desirable,Docker containers,2.5"""
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(csv_content)
             temp_path = f.name
 
@@ -195,10 +197,10 @@ Desirable,Docker containers,2.5"""
             df = load_matrix(Path(temp_path))
 
             # Non-numeric values should be converted to 0
-            assert df.iloc[1]['SelfScore'] == 0  # 'invalid' -> 0
+            assert df.iloc[1]["SelfScore"] == 0  # 'invalid' -> 0
             # Numeric values should be preserved (and converted to int)
-            assert df.iloc[0]['SelfScore'] == 4
-            assert df.iloc[2]['SelfScore'] == 2  # 2.5 -> 2 (truncated)
+            assert df.iloc[0]["SelfScore"] == 4
+            assert df.iloc[2]["SelfScore"] == 2  # 2.5 -> 2 (truncated)
 
         finally:
             os.unlink(temp_path)
@@ -210,7 +212,7 @@ Essential,Python programming,10
 Important,SQL databases,-5
 Desirable,Docker containers,3"""
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(csv_content)
             temp_path = f.name
 
@@ -218,9 +220,9 @@ Desirable,Docker containers,3"""
             df = load_matrix(Path(temp_path))
 
             # Values should be clipped to 0-5 range
-            assert df.iloc[0]['SelfScore'] == 5  # 10 -> 5 (clipped)
-            assert df.iloc[1]['SelfScore'] == 0  # -5 -> 0 (clipped)
-            assert df.iloc[2]['SelfScore'] == 3  # 3 -> 3 (unchanged)
+            assert df.iloc[0]["SelfScore"] == 5  # 10 -> 5 (clipped)
+            assert df.iloc[1]["SelfScore"] == 0  # -5 -> 0 (clipped)
+            assert df.iloc[2]["SelfScore"] == 3  # 3 -> 3 (unchanged)
 
         finally:
             os.unlink(temp_path)
@@ -233,7 +235,7 @@ Important,Basic SQL knowledge,3
 Desirable,Strong Docker skills,2
 Implicit,Team collaboration,5"""
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(csv_content)
             temp_path = f.name
 
@@ -241,20 +243,20 @@ Implicit,Team collaboration,5"""
             df = load_matrix(Path(temp_path))
 
             # Check ClassWt values
-            assert df.iloc[0]['ClassWt'] == 3.0  # Essential
-            assert df.iloc[1]['ClassWt'] == 2.0  # Important
-            assert df.iloc[2]['ClassWt'] == 1.0  # Desirable
-            assert df.iloc[3]['ClassWt'] == 0.5  # Implicit
+            assert df.iloc[0]["ClassWt"] == 3.0  # Essential
+            assert df.iloc[1]["ClassWt"] == 2.0  # Important
+            assert df.iloc[2]["ClassWt"] == 1.0  # Desirable
+            assert df.iloc[3]["ClassWt"] == 0.5  # Implicit
 
             # Check EmphMod values (emphasis modifiers)
-            assert df.iloc[0]['EmphMod'] == 0.5   # "Expert" -> high emphasis
-            assert df.iloc[1]['EmphMod'] == -0.5  # "Basic" -> low emphasis
-            assert df.iloc[2]['EmphMod'] == 0.5   # "Strong" -> high emphasis
-            assert df.iloc[3]['EmphMod'] == 0.0   # neutral
+            assert df.iloc[0]["EmphMod"] == 0.5  # "Expert" -> high emphasis
+            assert df.iloc[1]["EmphMod"] == -0.5  # "Basic" -> low emphasis
+            assert df.iloc[2]["EmphMod"] == 0.5  # "Strong" -> high emphasis
+            assert df.iloc[3]["EmphMod"] == 0.0  # neutral
 
             # Check Weight column (should match ClassWt)
-            assert df.iloc[0]['Weight'] == df.iloc[0]['ClassWt']
-            assert df.iloc[1]['Weight'] == df.iloc[1]['ClassWt']
+            assert df.iloc[0]["Weight"] == df.iloc[0]["ClassWt"]
+            assert df.iloc[1]["Weight"] == df.iloc[1]["ClassWt"]
 
         finally:
             os.unlink(temp_path)
@@ -264,7 +266,7 @@ Implicit,Team collaboration,5"""
         csv_content = """Classification,Requirement,SelfScore
 Essential,Python programming,4"""
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(csv_content)
             temp_path = f.name
 
@@ -273,7 +275,7 @@ Essential,Python programming,4"""
             df = load_matrix(temp_path)  # Pass string, not Path
 
             assert len(df) == 1
-            assert df.iloc[0]['Classification'] == 'Essential'
+            assert df.iloc[0]["Classification"] == "Essential"
 
         finally:
             os.unlink(temp_path)
@@ -284,7 +286,7 @@ Essential,Python programming,4"""
 Essential,Python programming,4
 Important,SQL databases,3"""
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(csv_content)
             temp_path = f.name
 
@@ -293,7 +295,7 @@ Important,SQL databases,3"""
 
             # pandas should handle whitespace automatically
             assert len(df) == 2
-            assert df.iloc[0]['SelfScore'] == 4
+            assert df.iloc[0]["SelfScore"] == 4
 
         finally:
             os.unlink(temp_path)
@@ -303,13 +305,13 @@ Important,SQL databases,3"""
         csv_content = """Classification,Requirement,SelfScore
 Essential,Python programming,4"""
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(csv_content)
             temp_path = f.name
 
         try:
             # Mock emphasis_modifier to raise an exception
-            with patch('scoring.data_loader.emphasis_modifier') as mock_emphasis:
+            with patch("scoring.data_loader.emphasis_modifier") as mock_emphasis:
                 mock_emphasis.side_effect = Exception("Emphasis processing error")
 
                 with pytest.raises(ValueError, match="Error processing derived columns:"):
@@ -323,16 +325,18 @@ Essential,Python programming,4"""
         csv_content = """Classification,Requirement,SelfScore
 Essential,Python programming,4"""
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(csv_content)
             temp_path = f.name
 
         try:
             # Mock pandas to_numeric to raise an exception
-            with patch('pandas.to_numeric') as mock_to_numeric:
+            with patch("pandas.to_numeric") as mock_to_numeric:
                 mock_to_numeric.side_effect = Exception("Numeric conversion error")
 
-                with pytest.raises(ValueError, match="Error processing SelfScore values: Numeric conversion error"):
+                with pytest.raises(
+                    ValueError, match="Error processing SelfScore values: Numeric conversion error"
+                ):
                     load_matrix(Path(temp_path))
 
         finally:
@@ -341,9 +345,9 @@ Essential,Python programming,4"""
     def test_unicode_decode_error_simulation(self):
         """Test handling of files with encoding issues."""
         # Create a file with binary content that can't be decoded as UTF-8
-        with tempfile.NamedTemporaryFile(mode='wb', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="wb", suffix=".csv", delete=False) as f:
             # Write some binary data that's not valid UTF-8
-            f.write(b'\xff\xfe\x00\x00Invalid UTF-8 content')
+            f.write(b"\xff\xfe\x00\x00Invalid UTF-8 content")
             temp_path = f.name
 
         try:
@@ -364,7 +368,7 @@ Essential,Python programming,4"""
 
         csv_content = "\n".join(csv_lines)
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(csv_content)
             temp_path = f.name
 
@@ -372,7 +376,17 @@ Essential,Python programming,4"""
             df = load_matrix(Path(temp_path))
 
             assert len(df) == 100
-            assert all(col in df.columns for col in ['Classification', 'Requirement', 'SelfScore', 'ClassWt', 'EmphMod', 'Weight'])
+            assert all(
+                col in df.columns
+                for col in [
+                    "Classification",
+                    "Requirement",
+                    "SelfScore",
+                    "ClassWt",
+                    "EmphMod",
+                    "Weight",
+                ]
+            )
 
         finally:
             os.unlink(temp_path)
@@ -388,7 +402,7 @@ class TestCoreGapSkillValidation:
 Essential,Python programming,1
 Important,SQL databases,0"""
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(csv_content)
             temp_path = f.name
 
@@ -399,17 +413,17 @@ Important,SQL databases,0"""
             result = compute_scores(df)
 
             # Should have core gaps
-            assert result['core_gap'] is True
-            assert len(result['core_gap_skills']) == 2
+            assert result["core_gap"] is True
+            assert len(result["core_gap_skills"]) == 2
 
             # Verify CoreGapSkill objects are created properly
-            gap_skills = result['core_gap_skills']
+            gap_skills = result["core_gap_skills"]
             for skill in gap_skills:
-                assert hasattr(skill, 'name')
-                assert hasattr(skill, 'classification')
-                assert hasattr(skill, 'self_score')
-                assert hasattr(skill, 'threshold')
-                assert hasattr(skill, 'severity')
+                assert hasattr(skill, "name")
+                assert hasattr(skill, "classification")
+                assert hasattr(skill, "self_score")
+                assert hasattr(skill, "threshold")
+                assert hasattr(skill, "severity")
 
         finally:
             os.unlink(temp_path)

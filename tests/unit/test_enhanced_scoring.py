@@ -23,21 +23,18 @@ class TestEnhancedScoring:
                 "Lead strategic planning initiatives",
                 "Manage cross-functional teams in biology",
                 "Expert bioinformatics knowledge",
-                "Present to senior leadership"
+                "Present to senior leadership",
             ],
             "SelfScore": [4, 3, 2, 4],
             "ClassWt": [3.0, 2.0, 1.0, 0.5],
-            "EmphMod": [0.0, 0.0, 0.5, 0.0]
+            "EmphMod": [0.0, 0.0, 0.5, 0.0],
         }
         return pd.DataFrame(data)
 
     def test_enhanced_scoring_disabled_equals_standard(self, sample_df):
         """Test that enhanced scoring with enhancements disabled equals standard scoring."""
         standard_result = compute_scores(sample_df.copy())
-        enhanced_result = compute_scores_enhanced(
-            sample_df.copy(),
-            enable_enhancements=False
-        )
+        enhanced_result = compute_scores_enhanced(sample_df.copy(), enable_enhancements=False)
 
         assert standard_result["pct_fit"] == enhanced_result["pct_fit"]
         assert standard_result["actual_points"] == enhanced_result["actual_points"]
@@ -50,7 +47,7 @@ class TestEnhancedScoring:
             sample_df.copy(),
             enable_enhancements=True,
             target_role_type="executive",
-            years_experience=20
+            years_experience=20,
         )
 
         # Enhanced scoring should be different (could be higher or lower)
@@ -59,15 +56,13 @@ class TestEnhancedScoring:
     def test_enhanced_scoring_with_proven_strengths(self, sample_df):
         """Test enhanced scoring with proven strengths."""
         result_without = compute_scores_enhanced(
-            sample_df.copy(),
-            enable_enhancements=True,
-            proven_strengths=None
+            sample_df.copy(), enable_enhancements=True, proven_strengths=None
         )
 
         result_with = compute_scores_enhanced(
             sample_df.copy(),
             enable_enhancements=True,
-            proven_strengths=["cross-functional", "bioinformatics"]
+            proven_strengths=["cross-functional", "bioinformatics"],
         )
 
         # With proven strengths should typically score higher
@@ -80,24 +75,20 @@ class TestEnhancedScoring:
             "Classification": ["Essential", "Important"],
             "Requirement": [
                 "Strategic planning and vision development",
-                "Technical programming and data analysis"
+                "Technical programming and data analysis",
             ],
             "SelfScore": [4, 3],
             "ClassWt": [3.0, 2.0],
-            "EmphMod": [0.0, 0.0]
+            "EmphMod": [0.0, 0.0],
         }
         df = pd.DataFrame(role_data)
 
         c_suite_result = compute_scores_enhanced(
-            df.copy(),
-            enable_enhancements=True,
-            target_role_level="c_suite"
+            df.copy(), enable_enhancements=True, target_role_level="c_suite"
         )
 
         senior_ic_result = compute_scores_enhanced(
-            df.copy(),
-            enable_enhancements=True,
-            target_role_level="senior_ic"
+            df.copy(), enable_enhancements=True, target_role_level="senior_ic"
         )
 
         # Different role levels should produce different scores
@@ -108,13 +99,13 @@ class TestEnhancedScoring:
         junior_result = compute_scores_enhanced(
             sample_df.copy(),
             enable_enhancements=True,
-            years_experience=10  # Below 15 year threshold
+            years_experience=10,  # Below 15 year threshold
         )
 
         senior_result = compute_scores_enhanced(
             sample_df.copy(),
             enable_enhancements=True,
-            years_experience=25  # Above 15 year threshold
+            years_experience=25,  # Above 15 year threshold
         )
 
         # Different experience levels should produce different scores for senior professionals
@@ -123,15 +114,11 @@ class TestEnhancedScoring:
     def test_enhanced_scoring_dual_track_effects(self, sample_df):
         """Test that target role type affects dual-track scoring."""
         executive_result = compute_scores_enhanced(
-            sample_df.copy(),
-            enable_enhancements=True,
-            target_role_type="executive"
+            sample_df.copy(), enable_enhancements=True, target_role_type="executive"
         )
 
         ic_result = compute_scores_enhanced(
-            sample_df.copy(),
-            enable_enhancements=True,
-            target_role_type="ic"
+            sample_df.copy(), enable_enhancements=True, target_role_type="ic"
         )
 
         # Different role types should produce different scores
@@ -140,15 +127,18 @@ class TestEnhancedScoring:
     def test_enhanced_scoring_adds_columns(self, sample_df):
         """Test that enhanced scoring adds the expected columns."""
         df_copy = sample_df.copy()
-        compute_scores_enhanced(
-            df_copy,
-            enable_enhancements=True
-        )
+        compute_scores_enhanced(df_copy, enable_enhancements=True)
 
         expected_columns = [
-            "ReqType", "DualTrackMod", "SkillCategory", "ExpLevelMod",
-            "CrossFuncComplexity", "IndicatorCount", "MatchesStrength",
-            "CrossFuncMod", "RoleLevelMod"
+            "ReqType",
+            "DualTrackMod",
+            "SkillCategory",
+            "ExpLevelMod",
+            "CrossFuncComplexity",
+            "IndicatorCount",
+            "MatchesStrength",
+            "CrossFuncMod",
+            "RoleLevelMod",
         ]
 
         for col in expected_columns:
@@ -160,10 +150,7 @@ class TestEnhancedScoring:
         gap_data = sample_df.copy()
         gap_data.loc[0, "SelfScore"] = 1  # Essential skill with score 1 (≤ 2 threshold)
 
-        result = compute_scores_enhanced(
-            gap_data,
-            enable_enhancements=True
-        )
+        result = compute_scores_enhanced(gap_data, enable_enhancements=True)
 
         assert result["core_gap"] is True
         assert len(result["core_gap_skills"]) > 0
@@ -188,10 +175,7 @@ class TestEnhancedScoring:
         bonus_data.loc[2, "SelfScore"] = 5  # Desirable
         bonus_data.loc[3, "SelfScore"] = 5  # Implicit
 
-        result = compute_scores_enhanced(
-            bonus_data,
-            enable_enhancements=True
-        )
+        result = compute_scores_enhanced(bonus_data, enable_enhancements=True)
 
         # Should still have reasonable scores due to bonus capping
         assert result["pct_fit"] <= 1.0  # Should not exceed 100%
@@ -207,18 +191,16 @@ class TestEnhancedScoringRealWorld:
             "Requirement": [
                 "Collaborate across chemistry, biology, and clinical teams",
                 "Translate research findings to business stakeholders",
-                "Integrate multiple therapeutic platforms"
+                "Integrate multiple therapeutic platforms",
             ],
             "SelfScore": [4, 4, 3],
             "ClassWt": [3.0, 3.0, 2.0],
-            "EmphMod": [0.0, 0.0, 0.0]
+            "EmphMod": [0.0, 0.0, 0.0],
         }
         df = pd.DataFrame(data)
 
         result = compute_scores_enhanced(
-            df,
-            enable_enhancements=True,
-            proven_strengths=["cross-functional", "integration"]
+            df, enable_enhancements=True, proven_strengths=["cross-functional", "integration"]
         )
 
         # Should detect high cross-functional complexity and apply bonuses
@@ -230,24 +212,24 @@ class TestEnhancedScoringRealWorld:
             "Classification": ["Essential", "Important"],
             "Requirement": [
                 "Lead strategic planning initiatives",
-                "Manage and mentor team members"
+                "Manage and mentor team members",
             ],
             "SelfScore": [3, 3],  # Below baseline for senior executives
             "ClassWt": [3.0, 2.0],
-            "EmphMod": [0.0, 0.0]
+            "EmphMod": [0.0, 0.0],
         }
         df = pd.DataFrame(data)
 
         senior_result = compute_scores_enhanced(
             df.copy(),
             enable_enhancements=True,
-            years_experience=25  # Senior experience
+            years_experience=25,  # Senior experience
         )
 
         junior_result = compute_scores_enhanced(
             df.copy(),
             enable_enhancements=True,
-            years_experience=10  # Junior experience (no calibration)
+            years_experience=10,  # Junior experience (no calibration)
         )
 
         # Senior should have lower score due to higher expectations
@@ -259,24 +241,24 @@ class TestEnhancedScoringRealWorld:
             "Classification": ["Essential", "Important"],
             "Requirement": [
                 "Strategic thinking and vision development",
-                "Technical implementation expertise"
+                "Technical implementation expertise",
             ],
             "SelfScore": [4, 3],
             "ClassWt": [3.0, 2.0],
-            "EmphMod": [0.0, 0.0]
+            "EmphMod": [0.0, 0.0],
         }
         df = pd.DataFrame(strategic_data)
 
         c_suite_result = compute_scores_enhanced(
             df.copy(),
             enable_enhancements=True,
-            target_role_level="c_suite"  # Strategic thinking weighted higher
+            target_role_level="c_suite",  # Strategic thinking weighted higher
         )
 
         senior_ic_result = compute_scores_enhanced(
             df.copy(),
             enable_enhancements=True,
-            target_role_level="senior_ic"  # Technical skills weighted higher
+            target_role_level="senior_ic",  # Technical skills weighted higher
         )
 
         # C-suite should score higher due to strategic emphasis

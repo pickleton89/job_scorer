@@ -48,7 +48,7 @@ from typing import Any, NoReturn, TypeVar
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Type variable for the main function
-F = TypeVar('F', bound=Callable[..., Any])
+F = TypeVar("F", bound=Callable[..., Any])
 
 # Type for the main function
 MainFunction = Callable[[], None]
@@ -59,11 +59,13 @@ main: MainFunction | None = None
 try:
     # Try relative import first (when run as part of the package)
     from .cli import main as cli_main
+
     main = cli_main
 except ImportError:
     # Fall back to absolute import (when run directly)
     try:
         from cli import main as cli_main  # type: ignore[import-not-found, no-redef]
+
         main = cli_main
     except ImportError:
         print("Error: Could not import required modules.", file=sys.stderr)
@@ -71,6 +73,7 @@ except ImportError:
         sys.exit(1)
 
 __version__ = "2.0.0"
+
 
 def run() -> NoReturn:
     """Entry point wrapper for the scoring tool.
@@ -97,6 +100,7 @@ def run() -> NoReturn:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
     # No need for a return statement as all code paths raise SystemExit
+
 
 if __name__ == "__main__":
     run()
